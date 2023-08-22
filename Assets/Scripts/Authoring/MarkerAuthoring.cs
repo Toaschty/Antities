@@ -1,13 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Entities;
+using Unity.Transforms;
 using UnityEngine;
 
 public class MarkerAuthoring : MonoBehaviour
 {
-    public MarkerType Type;
-    public float MaxIntensity;
-
     class Baker : Baker<MarkerAuthoring>
     {
         public override void Bake(MarkerAuthoring authoring)
@@ -15,27 +13,29 @@ public class MarkerAuthoring : MonoBehaviour
             var entity = GetEntity(TransformUsageFlags.Dynamic);
             AddComponent(entity, new Marker
             {
-                Type = authoring.Type,
-                MaxIntensity = authoring.MaxIntensity,
-                Intensity = authoring.MaxIntensity,
-                Scale = authoring.gameObject.transform.localScale[0],
+                Intensity = float.MaxValue,
+                Scale = authoring.gameObject.transform.localScale[0]
             });
+            AddComponent<FoodMarker>(entity);
+            SetComponentEnabled<FoodMarker>(entity, false);
+            AddComponent<ColonyMarker>(entity);
+            SetComponentEnabled<ColonyMarker>(entity, false);
         }
     }
 }
 
-public enum MarkerType
-{
-    Home,
-    Food
-}
-
-
 public struct Marker : IComponentData
 {
-    public MarkerType Type;
+    // Current pheromone intensity
     public float Intensity;
-    public float MaxIntensity;
     public float Scale;
+}
+
+public struct FoodMarker : IComponentData, IEnableableComponent
+{
+}
+
+public struct ColonyMarker : IComponentData, IEnableableComponent
+{
 }
 

@@ -52,6 +52,8 @@ public partial struct FoodPickupSystem : ISystem
 
                 ecb.SetComponentEnabled<Food>(ant.ValueRW.Food, false);
 
+                ant.ValueRW.LeftFood = Time.time;
+
                 // Switch target of ant to colony
                 state.EntityManager.SetComponentEnabled<TargetFood>(entity, false);
                 state.EntityManager.SetComponentEnabled<TargetColony>(entity, true);

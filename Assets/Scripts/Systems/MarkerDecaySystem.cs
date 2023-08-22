@@ -17,6 +17,7 @@ public partial struct MarkerDecaySystem : ISystem
     public void OnUpdate(ref SystemState state)
     {
         var deltaTime = SystemAPI.Time.DeltaTime;
+        var markerConfig = SystemAPI.GetSingleton<MarkerConfig>();
 
         var ecb = new EntityCommandBuffer(Unity.Collections.Allocator.Temp);
 
@@ -26,7 +27,7 @@ public partial struct MarkerDecaySystem : ISystem
 
             // Scale down markers
             var transform = state.EntityManager.GetComponentData<LocalTransform>(entity);
-            transform.Scale = (marker.ValueRO.Intensity / marker.ValueRO.MaxIntensity) * marker.ValueRO.Scale;
+            transform.Scale = (marker.ValueRO.Intensity / markerConfig.PheromoneMaxTime) * marker.ValueRO.Scale;
             state.EntityManager.SetComponentData(entity, transform);
 
             // Remove marker if live < 0

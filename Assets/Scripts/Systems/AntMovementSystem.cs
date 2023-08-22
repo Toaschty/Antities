@@ -24,6 +24,8 @@ public partial struct AntMovementSystem : ISystem
 
         foreach (var (transform, ant) in SystemAPI.Query<RefRW<LocalTransform>, RefRW<Ant>>())
         {
+            HandleRandomSteering(ant);
+
             // Get sensor data
             float leftSensorIntensity = state.EntityManager.GetComponentData<Sensor>(ant.ValueRO.LeftSensor).Intensity;
             float centerSensorIntensity = state.EntityManager.GetComponentData<Sensor>(ant.ValueRO.CenterSensor).Intensity;
@@ -79,8 +81,7 @@ public partial struct AntMovementSystem : ISystem
 
                     if (sensorPosition.x != 0 && sensorPosition.y != 0 && sensorPosition.z != 0)
                     {
-                        float3 desiredDirection = math.normalize(sensorPosition - transform.ValueRO.Position);
-                        desiredDirection = math.normalize(desiredDirection + random.NextFloat3Direction() * ant.ValueRO.WanderStrength);
+                        float3 desiredDirection = math.normalize(sensorPosition - transform.ValueRO.Position) * ant.ValueRO.SensorStength;
                         desiredDirection.y = 0;
                         ant.ValueRW.DesiredDirection = desiredDirection;
                     }
@@ -88,15 +89,12 @@ public partial struct AntMovementSystem : ISystem
                 // No data => Random movement
                 else
                 {
-                    // Generate new desired direction randomly
-                    float3 desiredDirection = math.normalize(ant.ValueRO.DesiredDirection + random.NextFloat3Direction() * ant.ValueRO.WanderStrength);
-                    desiredDirection.y = 0;
-                    ant.ValueRW.DesiredDirection = desiredDirection;
+                    ant.ValueRW.DesiredDirection = ant.ValueRO.RandomSteerForce;
                 }
             }
 
             // Calculate acceleration
-            float3 desiredVelocity = ant.ValueRO.DesiredDirection * ant.ValueRO.MaxSpeed;
+            float3 desiredVelocity = math.normalize(ant.ValueRO.RandomSteerForce + ant.ValueRO.DesiredDirection) * ant.ValueRO.MaxSpeed;
             float3 acceleration = (desiredVelocity - ant.ValueRO.Velocity) * ant.ValueRO.SteerStrength;
 
             if (math.length(acceleration) > ant.ValueRO.SteerStrength)
@@ -118,5 +116,32 @@ public partial struct AntMovementSystem : ISystem
             transform.ValueRW.Position += velocity * deltaTime;
             transform.ValueRW.Rotation = quaternion.RotateY(-math.atan2(velocity.z, velocity.x) + math.PI / 2f);
         }
+    }
+
+    private void HandleRandomSteering(RefRW<Ant> ant)
+    {
+        // No random steering if ant has target
+        if (ant.ValueRO.Target != Entity.Null || ant.ValueRO.State == AntState.TurningAround)
+        {
+            ant.ValueRW.RandomSteerForce = float3.zero;
+            return;
+        }
+
+        if (Time.time > ant.ValueRO.NextRandomSteerTime)
+        {
+            ant.ValueRW.NextRandomSteerTime = Time.time + random.NextFloat(ant.ValueRO.MaxRandomSteerDuration / 2f, ant.ValueRO.MaxRandomSteerDuration);
+            ant.ValueRW.RandomSteerForce = GetRandomDirection(ant.ValueRO.DesiredDirection, ant.ValueRO.RandomDirectionAngle) * ant.ValueRO.RandomSteerStength;
+            ant.ValueRW.RandomSteerForce.y = 0f;
+        }
+    }
+
+    private float3 GetRandomDirection(float3 currentDirection, float maxAllowedAngle)
+    {
+        var angle = math.atan2(currentDirection.z, currentDirection.x);
+        var minAngle = angle - math.radians(maxAllowedAngle) / 2f;
+        var maxAngle = angle + math.radians(maxAllowedAngle) / 2f;
+
+        var randomAngle = random.NextFloat(minAngle, maxAngle);
+        return math.normalize(new float3(math.cos(randomAngle), 0f, math.sin(randomAngle)));
     }
 }

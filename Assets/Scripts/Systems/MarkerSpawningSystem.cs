@@ -8,15 +8,11 @@ using UnityEngine;
 
 public partial struct MarkerSpawningSysten : ISystem
 {
-    public float elapsedTime;
-
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<MarkerConfig>();
         state.RequireForUpdate<Ant>();
-
-        elapsedTime = 0f;
     }
 
     [BurstCompile]
@@ -24,34 +20,47 @@ public partial struct MarkerSpawningSysten : ISystem
     {
         var markerConfig = SystemAPI.GetSingleton<MarkerConfig>();
 
-        elapsedTime += SystemAPI.Time.DeltaTime;
-
-        if (elapsedTime < markerConfig.TimeBetweenMarkers)
+        foreach (var (transform, ant) in SystemAPI.Query<RefRO<LocalTransform>, RefRW<Ant>>())
         {
-            return;
-        }
+            // Place first pheromone without checking the distance => No previous pheromone here
+            if (math.lengthsq(ant.ValueRO.LastPheromonePosition) > 0.0f)
+            {
+                // Check distance to last pheronome
+                if (math.distance(transform.ValueRO.Position, ant.ValueRO.LastPheromonePosition) < markerConfig.DistanceBetweenMarkers)
+                    continue;
+            }
 
-        foreach (var (transform, ant) in SystemAPI.Query<RefRO<LocalTransform>, RefRO<Ant>>())
-        {
-            Entity instance = Entity.Null;
+            Entity pheromoneInstance = Entity.Null;
+            float intensity = 0f;
 
             if (ant.ValueRO.State == AntState.SearchingFood)
             {
-                instance = state.EntityManager.Instantiate(markerConfig.ToHomeMarker);
+                pheromoneInstance = state.EntityManager.Instantiate(markerConfig.ToHomeMarker);
+                state.EntityManager.SetComponentEnabled<ColonyMarker>(pheromoneInstance, true);
+                intensity = 1 - (Time.time - ant.ValueRO.LeftColony) / markerConfig.PheromoneMaxTime;
             }
             else
             {
-                instance = state.EntityManager.Instantiate(markerConfig.ToFoodMarker);
+                pheromoneInstance = state.EntityManager.Instantiate(markerConfig.ToFoodMarker);
+                state.EntityManager.SetComponentEnabled<FoodMarker>(pheromoneInstance, true);
+                intensity = 1 - (Time.time - ant.ValueRO.LeftFood) / markerConfig.PheromoneMaxTime;
             }
 
-            state.EntityManager.SetComponentData(instance, new LocalTransform
+            intensity = math.lerp(markerConfig.PheromoneMaxTime / 4f, markerConfig.PheromoneMaxTime, intensity);
+            state.EntityManager.SetComponentData(pheromoneInstance, new Marker
+            {
+                Intensity = intensity,
+                Scale = state.EntityManager.GetComponentData<Marker>(pheromoneInstance).Scale
+            });
+
+            state.EntityManager.SetComponentData(pheromoneInstance, new LocalTransform
             {
                 Position = transform.ValueRO.Position,
                 Rotation = quaternion.identity,
-                Scale = SystemAPI.GetComponent<Marker>(instance).Scale
+                Scale = SystemAPI.GetComponent<Marker>(pheromoneInstance).Scale
             });
-        }
 
-        elapsedTime = 0f;
+            ant.ValueRW.LastPheromonePosition = transform.ValueRO.Position;
+        }
     }
 }

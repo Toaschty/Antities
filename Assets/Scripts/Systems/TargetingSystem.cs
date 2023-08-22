@@ -34,15 +34,35 @@ public partial struct TargetingSystem : ISystem
                 }
             }
 
+            Entity nearestTarget = Entity.Null;
+            float distance = 0f;
+
             foreach (var (m_transform, entity) in SystemAPI.Query<RefRO<LocalToWorld>>().WithAny<Food>().WithEntityAccess())
             {
                 // Check if target is inside 
                 if (IsInsideView(transform.ValueRO.Position, m_transform.ValueRO.Position, transform.ValueRO.Forward(), ant.ValueRO.ViewAngle, ant.ValueRO.ViewRadiusSqrt))
                 {
-                    ant.ValueRW.Target = entity;
-                    break;
+                    var currDist = math.distance(transform.ValueRO.Position, m_transform.ValueRO.Position);
+
+                    // Set entity instantly the first time
+                    if (nearestTarget == Entity.Null)
+                    {
+                        nearestTarget = entity;
+                        distance = currDist;
+                        continue;
+                    }
+
+                    // Check if current entity is closer than the previous ones
+                    if (currDist < distance)
+                    {
+                        nearestTarget = entity;
+                        distance = currDist;
+                    }
                 }
             }
+
+            if (nearestTarget != Entity.Null)
+                ant.ValueRW.Target = nearestTarget;
         }
 
         // Update ants which are looking for colony

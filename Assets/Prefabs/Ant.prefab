@@ -1236,8 +1236,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MaxSpeed: 3
-  SteerStrength: 3
-  WanderStrength: 0.15
+  SteerStrength: 5
+  WanderStrength: 0.1
+  SensorStrength: 0.9
+  RandomDirectionAngle: 180
+  MaxRandomSteerDuration: 1
+  RandomSteerStrength: 0.8
+  TurnAroundStrength: 10
+  ViewAngle: 90
+  ViewRadiusSqrt: 16
+  PickUpRadius: 0.5
   LeftSensor: {fileID: 5676633501003240816}
   CenterSensor: {fileID: 8866755945350619864}
   RightSensor: {fileID: 8467508504936031138}
@@ -1526,7 +1534,7 @@ Transform:
   m_GameObject: {fileID: 5676633501003240816}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1, y: 0, z: 0.668}
+  m_LocalPosition: {x: -1.39, y: 0, z: 0.668}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1544,7 +1552,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b9e7d9d4ba52c54bb0ea7f48ed89a04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Radius: 0.5
+  Radius: 0.75
   Ant: {fileID: 4614488211403440024}
 --- !u!1 &6472884778705495595
 GameObject:
@@ -1992,7 +2000,7 @@ Transform:
   m_GameObject: {fileID: 8467508504936031138}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1, y: 0, z: 0.668}
+  m_LocalPosition: {x: 1.39, y: 0, z: 0.668}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2010,7 +2018,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b9e7d9d4ba52c54bb0ea7f48ed89a04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Radius: 0.5
+  Radius: 0.75
   Ant: {fileID: 4614488211403440024}
 --- !u!1 &8495038902183457048
 GameObject:
@@ -2143,7 +2151,7 @@ Transform:
   m_GameObject: {fileID: 8866755945350619864}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 1.25}
+  m_LocalPosition: {x: 0, y: 0, z: 1.506}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2161,5 +2169,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b9e7d9d4ba52c54bb0ea7f48ed89a04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Radius: 0.5
+  Radius: 0.75
   Ant: {fileID: 4614488211403440024}

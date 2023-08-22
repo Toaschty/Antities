@@ -38,8 +38,17 @@ public partial struct ColonySystem : ISystem
                     ant.ValueRW.Target = Entity.Null;
                     ant.ValueRW.State = AntState.SearchingFood;
 
+                    // Swap search target
                     state.EntityManager.SetComponentEnabled<TargetFood>(entity, true);
                     state.EntityManager.SetComponentEnabled<TargetColony>(entity, false);
+
+                    // Reset timings
+                    ant.ValueRW.LeftColony = Time.time;
+                    ant.ValueRW.LeftFood = 0f;
+
+                    // Instantly turn around
+                    ant.ValueRW.Velocity = -ant.ValueRO.DesiredDirection;
+                    ant.ValueRW.DesiredDirection = -ant.ValueRO.DesiredDirection;
                 }
             }
         }

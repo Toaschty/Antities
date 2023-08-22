@@ -5,7 +5,9 @@ using UnityEngine;
 
 public class MarkerConfigAuthoring : MonoBehaviour
 {
-    public float TimeBetweenMarkers;
+    public float DistanceBetweenMarkers;
+    public float PheromoneMaxTime;
+
     public GameObject ToHomeMarker;
     public GameObject ToFoodMarker;
 
@@ -16,7 +18,8 @@ public class MarkerConfigAuthoring : MonoBehaviour
             var entity = GetEntity(TransformUsageFlags.None);
             AddComponent(entity, new MarkerConfig
             {
-                TimeBetweenMarkers = authoring.TimeBetweenMarkers,
+                DistanceBetweenMarkers = authoring.DistanceBetweenMarkers,
+                PheromoneMaxTime = authoring.PheromoneMaxTime,
                 ToHomeMarker = GetEntity(authoring.ToHomeMarker, TransformUsageFlags.Renderable),
                 ToFoodMarker = GetEntity(authoring.ToFoodMarker, TransformUsageFlags.Renderable),
             });
@@ -26,7 +29,8 @@ public class MarkerConfigAuthoring : MonoBehaviour
 
 public struct MarkerConfig : IComponentData
 {
-    public float TimeBetweenMarkers;
+    public float DistanceBetweenMarkers;
+    public float PheromoneMaxTime;
 
     public Entity ToHomeMarker;
     public Entity ToFoodMarker;

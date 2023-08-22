@@ -20,9 +20,9 @@ public partial struct FoodPickupSystem : ISystem
     {
         var ecb = new EntityCommandBuffer(Unity.Collections.Allocator.Temp);
         
-        foreach (var (transform, ant, entity) in SystemAPI.Query<RefRO<LocalTransform>, RefRW<Ant>>().WithEntityAccess())
+        foreach (var (transform, ant, entity) in SystemAPI.Query<RefRO<LocalTransform>, RefRW<Ant>>().WithAny<TargetFood>().WithEntityAccess())
         {
-            // Skip if ant has currently no food
+            // Skip if ant has currently no target / food
             if (ant.ValueRO.Target == Entity.Null)
                 continue;
 
@@ -42,6 +42,7 @@ public partial struct FoodPickupSystem : ISystem
                     Value = entity
                 });
 
+                // Move food object above ant after parenting
                 ecb.SetComponent(ant.ValueRW.Food, new LocalTransform
                 {
                     Position = new float3(0.0f, 0.5f, 0.0f),
@@ -49,19 +50,15 @@ public partial struct FoodPickupSystem : ISystem
                     Scale = 0.2f,
                 });
 
+                ecb.SetComponentEnabled<Food>(ant.ValueRW.Food, false);
+
+                // Switch target of ant to colony
+                state.EntityManager.SetComponentEnabled<TargetFood>(entity, false);
+                state.EntityManager.SetComponentEnabled<TargetColony>(entity, true);
+                
                 // Switch state of ant
                 ant.ValueRW.State = AntState.TurningAround;
                 ant.ValueRW.TurnAroundDirection = ant.ValueRO.DesiredDirection * -1;
-
-                var leftSensor = state.EntityManager.GetComponentData<Sensor>(ant.ValueRO.LeftSensor);
-                var centerSensor = state.EntityManager.GetComponentData<Sensor>(ant.ValueRO.CenterSensor);
-                var rightSensor = state.EntityManager.GetComponentData<Sensor>(ant.ValueRO.RightSensor);
-                leftSensor.SearchMarker = MarkerType.Home;
-                centerSensor.SearchMarker = MarkerType.Home;
-                rightSensor.SearchMarker = MarkerType.Home;
-                state.EntityManager.SetComponentData(ant.ValueRW.LeftSensor, leftSensor);
-                state.EntityManager.SetComponentData(ant.ValueRW.CenterSensor, centerSensor);
-                state.EntityManager.SetComponentData(ant.ValueRW.RightSensor, rightSensor);
             }
         }
 

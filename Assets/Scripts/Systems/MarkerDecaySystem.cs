@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Entities;
+using Unity.Transforms;
 using UnityEngine;
 
 public partial struct MarkerDecaySystem : ISystem
@@ -23,10 +24,14 @@ public partial struct MarkerDecaySystem : ISystem
         {
             marker.ValueRW.Intensity -= deltaTime;
 
+            // Scale down markers
+            var transform = state.EntityManager.GetComponentData<LocalTransform>(entity);
+            transform.Scale = (marker.ValueRO.Intensity / marker.ValueRO.MaxIntensity) * marker.ValueRO.Scale;
+            state.EntityManager.SetComponentData(entity, transform);
+
+            // Remove marker if live < 0
             if (marker.ValueRO.Intensity < 0)
-            {
                 ecb.DestroyEntity(entity);
-            }
         }
 
         ecb.Playback(state.EntityManager);

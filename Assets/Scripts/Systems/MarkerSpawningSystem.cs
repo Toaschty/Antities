@@ -48,7 +48,7 @@ public partial struct MarkerSpawningSysten : ISystem
             {
                 Position = transform.ValueRO.Position,
                 Rotation = quaternion.identity,
-                Scale = SystemAPI.GetComponent<LocalTransform>(markerConfig.ToHomeMarker).Scale
+                Scale = SystemAPI.GetComponent<Marker>(instance).Scale
             });
         }
 

@@ -21,7 +21,7 @@ public partial struct ColonySystem : ISystem
 
         foreach (var (colony_transform, colony) in SystemAPI.Query<RefRO<LocalToWorld>, RefRO<Colony>>())
         {
-            foreach (var (ant_transform, ant) in SystemAPI.Query<RefRO<LocalToWorld>, RefRW<Ant>>())
+            foreach (var (ant_transform, ant, entity) in SystemAPI.Query<RefRO<LocalToWorld>, RefRW<Ant>>().WithEntityAccess())
             {
                 // Check if ant is carrying food
                 if (ant.ValueRO.Food == Entity.Null)
@@ -38,15 +38,8 @@ public partial struct ColonySystem : ISystem
                     ant.ValueRW.Target = Entity.Null;
                     ant.ValueRW.State = AntState.SearchingFood;
 
-                    var leftSensor = state.EntityManager.GetComponentData<Sensor>(ant.ValueRO.LeftSensor);
-                    var centerSensor = state.EntityManager.GetComponentData<Sensor>(ant.ValueRO.CenterSensor);
-                    var rightSensor = state.EntityManager.GetComponentData<Sensor>(ant.ValueRO.RightSensor);
-                    leftSensor.SearchMarker = MarkerType.Food;
-                    centerSensor.SearchMarker = MarkerType.Food;
-                    rightSensor.SearchMarker = MarkerType.Food;
-                    state.EntityManager.SetComponentData(ant.ValueRW.LeftSensor, leftSensor);
-                    state.EntityManager.SetComponentData(ant.ValueRW.CenterSensor, centerSensor);
-                    state.EntityManager.SetComponentData(ant.ValueRW.RightSensor, rightSensor);
+                    state.EntityManager.SetComponentEnabled<TargetFood>(entity, true);
+                    state.EntityManager.SetComponentEnabled<TargetColony>(entity, false);
                 }
             }
         }

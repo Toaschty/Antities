@@ -6,6 +6,7 @@ using UnityEngine;
 public class SensorAuthoring : MonoBehaviour
 {
     public float Radius = 1f;
+    public GameObject Ant;
 
     class Baker : Baker<SensorAuthoring>
     {
@@ -15,8 +16,8 @@ public class SensorAuthoring : MonoBehaviour
 
             AddComponent(entity, new Sensor
             {
+                Ant = GetEntity(authoring.Ant, TransformUsageFlags.None),
                 Radius = authoring.Radius,
-                SearchMarker = MarkerType.Food,
                 Intensity = 0f
             });
         }
@@ -31,9 +32,10 @@ public class SensorAuthoring : MonoBehaviour
 
 public struct Sensor : IComponentData
 {
+    public Entity Ant;
+
     // Search settings
     public float Radius;
-    public MarkerType SearchMarker;
 
     // Queried data
     public float Intensity;

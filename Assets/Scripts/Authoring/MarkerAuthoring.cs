@@ -18,6 +18,7 @@ public class MarkerAuthoring : MonoBehaviour
                 Type = authoring.Type,
                 MaxIntensity = authoring.MaxIntensity,
                 Intensity = authoring.MaxIntensity,
+                Scale = authoring.gameObject.transform.localScale[0],
             });
         }
     }
@@ -35,5 +36,6 @@ public struct Marker : IComponentData
     public MarkerType Type;
     public float Intensity;
     public float MaxIntensity;
+    public float Scale;
 }
 

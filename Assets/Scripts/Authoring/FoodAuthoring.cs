@@ -10,15 +10,11 @@ public class FoodAuthoring : MonoBehaviour
         public override void Bake(FoodAuthoring authoring)
         {
             var entity = GetEntity(TransformUsageFlags.Dynamic);
-            AddComponent(entity, new Food
-            {
-                Targeted = false,
-            });
+            AddComponent<Food>(entity);
         }
     }
 }
 
-public struct Food : IComponentData
+public struct Food : IComponentData, IEnableableComponent
 {
-    public bool Targeted;
 }

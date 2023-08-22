@@ -37,6 +37,10 @@ public class AntAuthoring : MonoBehaviour
                 CenterSensor = GetEntity(authoring.CenterSensor, TransformUsageFlags.Dynamic),
                 RightSensor = GetEntity(authoring.RightSensor, TransformUsageFlags.Dynamic),
             });
+            AddComponent<TargetFood>(entity);
+            SetComponentEnabled<TargetFood>(entity, true);
+            AddComponent<TargetColony>(entity);
+            SetComponentEnabled<TargetColony>(entity, false);
         }
     }
 }
@@ -77,4 +81,12 @@ public struct Ant : IComponentData
     public Entity Target;
     public Entity Food;
     public float PickUpRadius;
+}
+
+public struct TargetFood : IComponentData, IEnableableComponent
+{
+}
+
+public struct TargetColony : IComponentData, IEnableableComponent
+{
 }

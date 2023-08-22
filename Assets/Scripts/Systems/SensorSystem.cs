@@ -22,10 +22,19 @@ public partial struct SensorSystem : ISystem
         {
             sensor.ValueRW.Intensity = 0f;
 
+            var antState = state.EntityManager.GetComponentData<Ant>(sensor.ValueRO.Ant).State;
+            MarkerType parsedState;
+
+            if (antState == AntState.GoingHome)
+                parsedState = MarkerType.Home;
+            else
+                parsedState = MarkerType.Food;
+
+
             foreach (var (m_transform, marker) in SystemAPI.Query<RefRO<LocalToWorld>, RefRO<Marker>>())
             {
                 // Skip all markers which are not needed
-                if (sensor.ValueRO.SearchMarker != marker.ValueRO.Type)
+                if (parsedState != marker.ValueRO.Type)
                     continue;
 
                 // Calculate distance to marker

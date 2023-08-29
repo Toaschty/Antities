@@ -22,6 +22,7 @@ public class MarkerConfigAuthoring : MonoBehaviour
                 PheromoneMaxTime = authoring.PheromoneMaxTime,
                 ToHomeMarker = GetEntity(authoring.ToHomeMarker, TransformUsageFlags.Renderable),
                 ToFoodMarker = GetEntity(authoring.ToFoodMarker, TransformUsageFlags.Renderable),
+                Scale = authoring.ToHomeMarker.transform.localScale[0]
             });
         }
     }
@@ -34,4 +35,6 @@ public struct MarkerConfig : IComponentData
 
     public Entity ToHomeMarker;
     public Entity ToFoodMarker;
+
+    public float Scale;
 }

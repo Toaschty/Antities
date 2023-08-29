@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class SensorAuthoring : MonoBehaviour
@@ -18,6 +19,7 @@ public class SensorAuthoring : MonoBehaviour
             {
                 Ant = GetEntity(authoring.Ant, TransformUsageFlags.None),
                 Radius = authoring.Radius,
+                RadiusSqrt = authoring.Radius * authoring.Radius,
                 Intensity = 0f
             });
         }
@@ -36,6 +38,7 @@ public struct Sensor : IComponentData
 
     // Search settings
     public float Radius;
+    public float RadiusSqrt;
 
     // Queried data
     public float Intensity;

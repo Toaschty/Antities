@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -19,22 +21,40 @@ public partial struct MarkerDecaySystem : ISystem
         var deltaTime = SystemAPI.Time.DeltaTime;
         var markerConfig = SystemAPI.GetSingleton<MarkerConfig>();
 
-        var ecb = new EntityCommandBuffer(Unity.Collections.Allocator.Temp);
+        var ecb = new EntityCommandBuffer(Allocator.TempJob);
 
-        foreach (var (marker, entity) in SystemAPI.Query<RefRW<Marker>>().WithEntityAccess())
+        var decayJob = new DecayJob
         {
-            marker.ValueRW.Intensity -= deltaTime;
+            DeltaTime = deltaTime,
+            MarkerConfig = markerConfig,
+            ECB = ecb.AsParallelWriter(),
+        };
 
-            // Scale down markers
-            var transform = state.EntityManager.GetComponentData<LocalTransform>(entity);
-            transform.Scale = (marker.ValueRO.Intensity / markerConfig.PheromoneMaxTime) * marker.ValueRO.Scale;
-            state.EntityManager.SetComponentData(entity, transform);
-
-            // Remove marker if live < 0
-            if (marker.ValueRO.Intensity < 0)
-                ecb.DestroyEntity(entity);
-        }
-
+        JobHandle decayJobHandle = decayJob.ScheduleParallel(state.Dependency);
+        decayJobHandle.Complete();
         ecb.Playback(state.EntityManager);
+    }
+}
+
+[BurstCompile]
+public partial struct DecayJob : IJobEntity
+{
+    [ReadOnly] public float DeltaTime;
+    [ReadOnly] public MarkerConfig MarkerConfig;
+
+    public EntityCommandBuffer.ParallelWriter ECB;
+
+    [BurstCompile]
+    public void Execute(Entity entity, ref Marker marker, ref LocalTransform transform)
+    {
+        // Reduce intensity by deltaTime
+        marker.Intensity -= DeltaTime;
+
+        // Scale down marker model depending on time
+        transform.Scale = (marker.Intensity / MarkerConfig.PheromoneMaxTime) * MarkerConfig.Scale;
+
+        // Destroy marker if necessary
+        if (marker.Intensity < 0)
+            ECB.DestroyEntity(0, entity);
     }
 }

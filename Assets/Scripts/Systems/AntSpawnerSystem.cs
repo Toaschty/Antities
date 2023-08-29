@@ -34,7 +34,6 @@ public partial struct AntSpawnerSystem : ISystem
         // Random rotation
         Unity.Mathematics.Random random = new Unity.Mathematics.Random(1);
 
-
         foreach (var ant in SystemAPI.Query<RefRW<Ant>>())
         {
             ant.ValueRW.DesiredDirection = random.NextFloat3Direction();

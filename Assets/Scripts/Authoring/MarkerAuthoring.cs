@@ -14,7 +14,6 @@ public class MarkerAuthoring : MonoBehaviour
             AddComponent(entity, new Marker
             {
                 Intensity = float.MaxValue,
-                Scale = authoring.gameObject.transform.localScale[0]
             });
             AddComponent<FoodMarker>(entity);
             SetComponentEnabled<FoodMarker>(entity, false);
@@ -28,7 +27,6 @@ public struct Marker : IComponentData
 {
     // Current pheromone intensity
     public float Intensity;
-    public float Scale;
 }
 
 public struct FoodMarker : IComponentData, IEnableableComponent

@@ -32,7 +32,9 @@ public partial struct MarkerDecaySystem : ISystem
 
         JobHandle decayJobHandle = decayJob.ScheduleParallel(state.Dependency);
         decayJobHandle.Complete();
+
         ecb.Playback(state.EntityManager);
+        ecb.Dispose();
     }
 }
 

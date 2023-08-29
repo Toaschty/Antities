@@ -30,16 +30,22 @@ public partial struct MarkerSpawningSysten : ISystem
         int markerCount = markerQuery.CalculateEntityCount();
 
         RawPheromoneHashMap = new NativeParallelMultiHashMap<int, float>(markerCount, Allocator.TempJob);
+        NativeArray<LocalToWorld> markerTransforms = markerQuery.ToComponentDataArray<LocalToWorld>(Allocator.TempJob);
+        NativeArray<Marker> markers = markerQuery.ToComponentDataArray<Marker>(Allocator.TempJob);
         var hashRawPheromoneJob = new HashRawPheromoneJob
         {
-            MarkerTransforms = markerQuery.ToComponentDataArray<LocalToWorld>(Allocator.TempJob),
-            Markers = markerQuery.ToComponentDataArray<Marker>(Allocator.TempJob),
+            MarkerTransforms = markerTransforms,
+            Markers = markers,
             GridSize = hashConfig.GridSize,
             HashMap = RawPheromoneHashMap.AsParallelWriter()
         };
 
-        JobHandle rawHandle = hashRawPheromoneJob.Schedule(markerCount, 2048);
+        JobHandle rawHandle = hashRawPheromoneJob.Schedule(markerCount, 2048, state.Dependency);
         rawHandle.Complete();
+
+        // Cleanup
+        markerTransforms.Dispose();
+        markers.Dispose();
 
         EntityCommandBuffer ECB = new EntityCommandBuffer(Allocator.TempJob);
         var markerSpawnerJob = new MarkerSpawnerJob
@@ -55,6 +61,11 @@ public partial struct MarkerSpawningSysten : ISystem
         spawnJobHandle.Complete();
 
         ECB.Playback(state.EntityManager);
+        ECB.Dispose();
+
+        RawPheromoneHashMap.Dispose();
+
+        state.Dependency = spawnJobHandle;
     }
 }
 
@@ -104,7 +115,10 @@ public partial struct MarkerSpawnerJob : IJobEntity
             hashIntensity += v;
 
         if (hashIntensity > hashConfig.MaxPheromonePerGrid)
+        {
+            values.Dispose();
             return;
+        }
 
         // Spawn new marker
         Entity pheromoneInstance = Entity.Null;
@@ -137,5 +151,7 @@ public partial struct MarkerSpawnerJob : IJobEntity
         });
 
         ant.LastPheromonePosition = transform.Position;
+
+        values.Dispose();
     }
 }

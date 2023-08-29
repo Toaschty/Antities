@@ -43,15 +43,17 @@ public partial struct SensorSystem : ISystem
 
         // Fill hashmap with marker data
         EntityQuery markerQuery = SystemAPI.QueryBuilder().WithAll<LocalToWorld, Marker>().Build();
+        NativeArray<LocalToWorld> markerTransforms = markerQuery.ToComponentDataArray<LocalToWorld>(Allocator.TempJob);
+        NativeArray<Entity> markerEntities = markerQuery.ToEntityArray(Allocator.TempJob);
         var hashMarkerJob = new HashMarkerJob
         {
-            MarkerTransforms = markerQuery.ToComponentDataArray<LocalToWorld>(Allocator.TempJob),
-            MarkerEntities = markerQuery.ToEntityArray(Allocator.TempJob),
+            MarkerTransforms = markerTransforms,
+            MarkerEntities = markerEntities,
             GridSize = gridSize,
             HashMap = HashMap.AsParallelWriter()
         };
 
-        JobHandle hashMarkerHandle = hashMarkerJob.Schedule(markerCount, 512);
+        JobHandle hashMarkerHandle = hashMarkerJob.Schedule(markerCount, 512, state.Dependency);
 
         // Update lookups
         AntsLookup.Update(ref state);
@@ -61,6 +63,10 @@ public partial struct SensorSystem : ISystem
         ColonyMarkerLookup.Update(ref state);
 
         hashMarkerHandle.Complete();
+
+        // Cleanup
+        markerTransforms.Dispose();
+        markerEntities.Dispose();
 
         // Calculate intensity for every sensor
         var sensorJob = new SensorJob
@@ -74,7 +80,13 @@ public partial struct SensorSystem : ISystem
             ColonyMarkerLookup = ColonyMarkerLookup,
         };
 
-        state.Dependency = sensorJob.ScheduleParallel(hashMarkerHandle);
+        JobHandle sensorHandle = sensorJob.ScheduleParallel(hashMarkerHandle);
+        sensorHandle.Complete();
+
+        state.Dependency = sensorHandle;
+
+        // Cleanup
+        HashMap.Dispose();
     }
 
     private void GetEntitiesInRadius(float3 position, float radius, int gridSize, ref NativeList<Entity> entities)

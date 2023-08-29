@@ -34790,6 +34790,7 @@ GameObject:
   - component: {fileID: 750262019}
   - component: {fileID: 750262020}
   - component: {fileID: 750262021}
+  - component: {fileID: 750262022}
   m_Layer: 0
   m_Name: Config
   m_TagString: Untagged
@@ -34824,7 +34825,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a20088806e59514985b0c55275599ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Count: 500
+  Count: 1000
   Ant: {fileID: 4614488211403440024, guid: 71c905a6e8e687e478ef393adcaec5e4, type: 3}
 --- !u!114 &750262020
 MonoBehaviour:
@@ -34858,6 +34859,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   GridSize: 0.75
   MaxPheromonePerGrid: 300
+--- !u!114 &750262022
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 750262017}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7a0884c3bacc9a4aa3e362f3595132f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &750730579
 GameObject:
   m_ObjectHideFlags: 0

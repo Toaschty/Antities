@@ -40,8 +40,5 @@ public partial struct AntSpawnerSystem : ISystem
             ant.ValueRW.DesiredDirection.y = 0f;
             ant.ValueRW.Velocity = ant.ValueRO.DesiredDirection;
         }
-
-        ecb.Dispose();
-        ants.Dispose();
     }
 }

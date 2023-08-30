@@ -120,6 +120,7 @@ public partial struct MovementJob : IJobEntity
             }
         }
 
+
         // Calculate acceleration
         float3 desiredVelocity = math.normalize(ant.RandomSteerForce + ant.DesiredDirection) * ant.MaxSpeed;
         float3 acceleration = (desiredVelocity - ant.Velocity) * ant.SteerStrength;

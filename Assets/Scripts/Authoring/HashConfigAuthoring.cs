@@ -7,7 +7,8 @@ using UnityEngine;
 public class HashConfigAuthoring : MonoBehaviour
 {
     public float GridSize = 1f;
-    public float MaxPheromonePerGrid = 10000f;
+    public float MaxColonyPheromonePerGrid = 500f;
+    public float MaxFoodPheromonePerGrid = 500f;
 
     class Baker : Baker<HashConfigAuthoring>
     {
@@ -17,7 +18,8 @@ public class HashConfigAuthoring : MonoBehaviour
             AddComponent(entity, new HashConfig
             {
                 GridSize = authoring.GridSize,
-                MaxPheromonePerGrid = authoring.MaxPheromonePerGrid,
+                MaxColonyPheromonePerGrid = authoring.MaxColonyPheromonePerGrid,
+                MaxFoodPheromonePerGrid = authoring.MaxFoodPheromonePerGrid,
             });
         }
     }
@@ -26,5 +28,6 @@ public class HashConfigAuthoring : MonoBehaviour
 public struct HashConfig : IComponentData
 {
     public float GridSize;
-    public float MaxPheromonePerGrid;
+    public float MaxColonyPheromonePerGrid;
+    public float MaxFoodPheromonePerGrid;
 }

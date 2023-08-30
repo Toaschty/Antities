@@ -25,7 +25,12 @@ public partial struct ColonySystem : ISystem
             {
                 // Check if ant is carrying food
                 if (ant.ValueRO.Food == Entity.Null)
+                {
+                    if (math.distance(colony_transform.ValueRO.Position, ant_transform.ValueRO.Position) < colony.ValueRO.DepositRadius)
+                        ant.ValueRW.LeftColony = Time.time;
+
                     continue;
+                }
 
                 // Calculate distance to ant > Deposit food
                 if (math.distance(colony_transform.ValueRO.Position, ant_transform.ValueRO.Position) < colony.ValueRO.DepositRadius)

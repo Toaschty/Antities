@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Physics;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -17,6 +18,8 @@ public partial struct TargetingSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+        var collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
+
         // Update ants which are looking for food
         foreach (var (transform, ant) in SystemAPI.Query<RefRO<LocalTransform>, RefRW<Ant>>().WithAny<TargetFood>())
         {
@@ -40,7 +43,7 @@ public partial struct TargetingSystem : ISystem
             foreach (var (m_transform, entity) in SystemAPI.Query<RefRO<LocalToWorld>>().WithAny<Food>().WithEntityAccess())
             {
                 // Check if target is inside 
-                if (IsInsideView(transform.ValueRO.Position, m_transform.ValueRO.Position, transform.ValueRO.Forward(), ant.ValueRO.ViewAngle, ant.ValueRO.ViewRadiusSqrt))
+                if (IsInsideView(transform.ValueRO.Position, m_transform.ValueRO.Position, transform.ValueRO.Forward(), ant.ValueRO.ViewAngle, ant.ValueRO.ViewRadiusSqrt, collisionWorld))
                 {
                     var currDist = math.distance(transform.ValueRO.Position, m_transform.ValueRO.Position);
 
@@ -73,7 +76,7 @@ public partial struct TargetingSystem : ISystem
 
             foreach (var (c_transform, entity) in SystemAPI.Query<RefRO<LocalToWorld>>().WithAny<Colony>().WithEntityAccess())
             {
-                if (IsInsideView(transform.ValueRO.Position, c_transform.ValueRO.Position, transform.ValueRO.Forward(), ant.ValueRO.ViewAngle, ant.ValueRO.ViewRadiusSqrt))
+                if (IsInsideView(transform.ValueRO.Position, c_transform.ValueRO.Position, transform.ValueRO.Forward(), ant.ValueRO.ViewAngle, ant.ValueRO.ViewRadiusSqrt, collisionWorld))
                 {
                     ant.ValueRW.Target = entity;
                     break;
@@ -82,10 +85,31 @@ public partial struct TargetingSystem : ISystem
         }
     }
 
-    private bool IsInsideView(float3 position, float3 targetPosition, float3 forward, float viewAngle, float viewRadiusSqrt)
+    private bool IsInsideView(float3 position, float3 targetPosition, float3 forward, float viewAngle, float viewRadiusSqrt, CollisionWorld collisionWorld)
     {
         // Check if target is inside range
         if (math.distancesq(position, targetPosition) > viewRadiusSqrt)
+            return false;
+
+        // Check if object is blocked by wall
+        RaycastInput input = new RaycastInput
+        {
+            Start = position,
+            End = targetPosition,
+            Filter = new CollisionFilter
+            {
+                BelongsTo = ~0u,
+                CollidesWith = ~0u,
+                GroupIndex = 0
+            }
+        };
+
+        Debug.DrawLine(position, targetPosition, Color.red, 0.5f);
+
+        Unity.Physics.RaycastHit hit = new Unity.Physics.RaycastHit();
+        bool haveHit = collisionWorld.CastRay(input, out hit);
+
+        if (haveHit)
             return false;
 
         var toTarget = targetPosition - position;

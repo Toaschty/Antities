@@ -15,10 +15,6 @@ public class MarkerAuthoring : MonoBehaviour
             {
                 Intensity = float.MaxValue,
             });
-            AddComponent<FoodMarker>(entity);
-            SetComponentEnabled<FoodMarker>(entity, false);
-            AddComponent<ColonyMarker>(entity);
-            SetComponentEnabled<ColonyMarker>(entity, false);
         }
     }
 }
@@ -29,11 +25,15 @@ public struct Marker : IComponentData
     public float Intensity;
 }
 
-public struct FoodMarker : IComponentData, IEnableableComponent
+public struct FoodMarker : IComponentData
 {
+    // Component needs value for "IsValid" to work
+    public bool Value;
 }
 
-public struct ColonyMarker : IComponentData, IEnableableComponent
+public struct ColonyMarker : IComponentData
 {
+    // Component needs value for "IsValid" to work
+    public bool Value;
 }
 

@@ -10,8 +10,9 @@ using UnityEngine;
 
 public partial struct MarkerSpawningSysten : ISystem
 {
-    NativeParallelMultiHashMap<int, float> RawPheromoneHashMap;
-    
+    NativeParallelMultiHashMap<int, float> ColonyPheromones;
+    NativeParallelMultiHashMap<int, float> FoodPheromones;
+
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
@@ -29,59 +30,63 @@ public partial struct MarkerSpawningSysten : ISystem
         EntityQuery markerQuery = SystemAPI.QueryBuilder().WithAll<LocalToWorld, Marker>().Build();
         int markerCount = markerQuery.CalculateEntityCount();
 
-        RawPheromoneHashMap = new NativeParallelMultiHashMap<int, float>(markerCount, Allocator.TempJob);
-        NativeArray<LocalToWorld> markerTransforms = markerQuery.ToComponentDataArray<LocalToWorld>(Allocator.TempJob);
-        NativeArray<Marker> markers = markerQuery.ToComponentDataArray<Marker>(Allocator.TempJob);
-        var hashRawPheromoneJob = new HashRawPheromoneJob
+        ColonyPheromones = new NativeParallelMultiHashMap<int, float>(markerCount, Allocator.TempJob);
+        FoodPheromones = new NativeParallelMultiHashMap<int, float>(markerCount, Allocator.TempJob);
+
+        var pheromoneHashingJob = new PheromoneHashingJob
         {
-            MarkerTransforms = markerTransforms,
-            Markers = markers,
             GridSize = hashConfig.GridSize,
-            HashMap = RawPheromoneHashMap.AsParallelWriter()
+            ColonyPhermones = ColonyPheromones.AsParallelWriter(),
+            FoodPhermones = FoodPheromones.AsParallelWriter(),
         };
 
-        JobHandle rawHandle = hashRawPheromoneJob.Schedule(markerCount, 2048, state.Dependency);
-        rawHandle.Complete();
-
-        // Cleanup
-        markerTransforms.Dispose();
-        markers.Dispose();
+        JobHandle phermoneHashingHandle = pheromoneHashingJob.ScheduleParallel(state.Dependency);
+        phermoneHashingHandle.Complete();
 
         EntityCommandBuffer ECB = new EntityCommandBuffer(Allocator.TempJob);
         var markerSpawnerJob = new MarkerSpawnerJob
         {
             markerConfig = markerConfig,
             hashConfig = hashConfig,
-            RawPheromoneHashMap = RawPheromoneHashMap,
             Time = (float)SystemAPI.Time.ElapsedTime,
+            ColonyPheromones = ColonyPheromones,
+            FoodPheromones = FoodPheromones,
             ECB = ECB.AsParallelWriter()
         };
 
-        JobHandle spawnJobHandle = markerSpawnerJob.ScheduleParallel(rawHandle);
+        JobHandle spawnJobHandle = markerSpawnerJob.ScheduleParallel(phermoneHashingHandle);
         spawnJobHandle.Complete();
 
         ECB.Playback(state.EntityManager);
         ECB.Dispose();
 
-        RawPheromoneHashMap.Dispose();
+        // Cleanup
+        ColonyPheromones.Dispose();
+        FoodPheromones.Dispose();
 
         state.Dependency = spawnJobHandle;
     }
 }
 
-public struct HashRawPheromoneJob : IJobParallelFor
+[BurstCompile]
+public partial struct PheromoneHashingJob : IJobEntity
 {
-    [ReadOnly] public NativeArray<LocalToWorld> MarkerTransforms;
-    [ReadOnly] public NativeArray<Marker> Markers;
     [ReadOnly] public float GridSize;
 
-    public NativeParallelMultiHashMap<int, float>.ParallelWriter HashMap;
+    public NativeParallelMultiHashMap<int, float>.ParallelWriter ColonyPhermones;
+    public NativeParallelMultiHashMap<int, float>.ParallelWriter FoodPhermones;
 
-    public void Execute(int index)
+    [BurstCompile]
+    public void Execute(MarkerAspect marker)
     {
-        // Generate hash for current position
-        int hash = (int)math.hash(new int3(math.floor(MarkerTransforms[index].Position * (1.0f / GridSize))));
-        HashMap.Add(hash, Markers[index].Intensity);
+        // Generate hash for current marker
+        int hash = (int)math.hash(new int3(math.floor(marker.Transform.ValueRO.Position * (1.0f / GridSize))));
+
+        // Add hash to corresponding hashMap
+        if (marker.HasFoodMarker)
+            FoodPhermones.Add(hash, marker.Marker.ValueRO.Intensity);
+        if (marker.HasColonyMarker)
+            ColonyPhermones.Add(hash, marker.Marker.ValueRO.Intensity);
     }
 }
 
@@ -90,8 +95,9 @@ public partial struct MarkerSpawnerJob : IJobEntity
 {
     [ReadOnly] public MarkerConfig markerConfig;
     [ReadOnly] public HashConfig hashConfig;
-    [ReadOnly] public NativeParallelMultiHashMap<int, float> RawPheromoneHashMap;
     [ReadOnly] public float Time;
+    [ReadOnly] public NativeParallelMultiHashMap<int, float> ColonyPheromones;
+    [ReadOnly] public NativeParallelMultiHashMap<int, float> FoodPheromones;
 
     public EntityCommandBuffer.ParallelWriter ECB;
 
@@ -108,15 +114,32 @@ public partial struct MarkerSpawnerJob : IJobEntity
 
         // Check if pheromone limit is reached
         int hash = (int)math.hash(new int3(math.floor(transform.Position * (1.0f / hashConfig.GridSize))));
-        var values = RawPheromoneHashMap.GetValuesForKey(hash);
+
+        NativeParallelMultiHashMap<int, float>.Enumerator phermonesValues;
+        float maxValue = 0.0f;
+        if (ant.State == AntState.SearchingFood)
+        {
+            phermonesValues = ColonyPheromones.GetValuesForKey(hash);
+            maxValue = hashConfig.MaxColonyPheromonePerGrid;
+        }
+        else if (ant.State == AntState.GoingHome)
+        {
+            phermonesValues = FoodPheromones.GetValuesForKey(hash);
+            maxValue = hashConfig.MaxFoodPheromonePerGrid;
+        }
+        else
+        {
+            return;
+        }
 
         float hashIntensity = 0f;
-        foreach (var v in values)
-            hashIntensity += v;
+        foreach (var value in phermonesValues)
+            hashIntensity += value;
 
-        if (hashIntensity > hashConfig.MaxPheromonePerGrid)
+        if (hashIntensity > maxValue)
         {
-            values.Dispose();
+            // Cleanup array and do nothing
+            phermonesValues.Dispose();
             return;
         }
 
@@ -127,17 +150,20 @@ public partial struct MarkerSpawnerJob : IJobEntity
         if (ant.State == AntState.SearchingFood)
         {
             pheromoneInstance = ECB.Instantiate(0, markerConfig.ToHomeMarker);
-            ECB.SetComponentEnabled<ColonyMarker>(0, pheromoneInstance, true);
+            ECB.AddComponent<ColonyMarker>(0, pheromoneInstance);
             intensity = 1 - (Time - ant.LeftColony) / markerConfig.PheromoneMaxTime;
+            // intensity = 1 - math.pow((Time - ant.LeftColony) / markerConfig.PheromoneMaxTime, 0.25f);
         }
         else
         {
             pheromoneInstance = ECB.Instantiate(0, markerConfig.ToFoodMarker);
-            ECB.SetComponentEnabled<FoodMarker>(0, pheromoneInstance, true);
+            ECB.AddComponent<FoodMarker>(0, pheromoneInstance);
             intensity = 1 - (Time - ant.LeftFood) / markerConfig.PheromoneMaxTime;
+            // intensity = 1 - math.pow((Time - ant.LeftFood) / markerConfig.PheromoneMaxTime, 0.25f);
         }
 
-        intensity = math.lerp(markerConfig.PheromoneMaxTime / 4f, markerConfig.PheromoneMaxTime, intensity);
+        intensity = math.lerp(0f, markerConfig.PheromoneMaxTime, intensity);
+
         ECB.SetComponent(0, pheromoneInstance, new Marker
         {
             Intensity = intensity,
@@ -151,7 +177,5 @@ public partial struct MarkerSpawnerJob : IJobEntity
         });
 
         ant.LastPheromonePosition = transform.Position;
-
-        values.Dispose();
     }
 }

@@ -26,7 +26,7 @@ public partial struct AntMovementSystem : ISystem
     {
         var deltaTime = SystemAPI.Time.DeltaTime;
         var randomComponent = SystemAPI.GetSingletonRW<RandomComponent>();
-
+        
         SensorLookup.Update(ref state);
         LocalToWorldLookup.Update(ref state);
 
@@ -67,14 +67,14 @@ public partial struct MovementJob : IJobEntity
         // Ant is currently turing around
         if (ant.State == AntState.TurningAround)
         {
-            var currAngle = math.atan2(ant.DesiredDirection.z, ant.DesiredDirection.x);
+            var currAngle = math.atan2(ant.Velocity.z, ant.Velocity.x);
             var desAngle = math.atan2(ant.TurnAroundDirection.z, ant.TurnAroundDirection.x);
 
-            var angle = math.lerp(currAngle, desAngle, 0.2f);
+            var angle = math.lerp(currAngle, desAngle, ant.TurnAroundStrength);
 
             ant.DesiredDirection = math.normalize(new float3(math.cos(angle), 0.0f, math.sin(angle)));
 
-            if (math.abs(currAngle - desAngle) < 0.02f)
+            if (math.abs(currAngle - desAngle) < 0.2f)
             {
                 ant.State = AntState.GoingHome;
             }
@@ -98,13 +98,13 @@ public partial struct MovementJob : IJobEntity
                 if (leftSensorIntensity > centerSensorIntensity && leftSensorIntensity > rightSensorIntensity)
                     sensorPosition = LocalToWorldLookup.GetRefRO(ant.LeftSensor).ValueRO.Position;
 
-                // Center
-                if (centerSensorIntensity > leftSensorIntensity && centerSensorIntensity > rightSensorIntensity)
-                    sensorPosition = LocalToWorldLookup.GetRefRO(ant.CenterSensor).ValueRO.Position;
-
                 // Right
                 if (rightSensorIntensity > leftSensorIntensity && rightSensorIntensity > centerSensorIntensity)
                     sensorPosition = LocalToWorldLookup.GetRefRO(ant.RightSensor).ValueRO.Position;
+
+                // Center
+                if (centerSensorIntensity > leftSensorIntensity && centerSensorIntensity > rightSensorIntensity)
+                    sensorPosition = LocalToWorldLookup.GetRefRO(ant.CenterSensor).ValueRO.Position;
 
                 if (sensorPosition.x != 0 && sensorPosition.y != 0 && sensorPosition.z != 0)
                 {
@@ -119,7 +119,6 @@ public partial struct MovementJob : IJobEntity
                 ant.DesiredDirection = ant.RandomSteerForce;
             }
         }
-
 
         // Calculate acceleration
         float3 desiredVelocity = math.normalize(ant.RandomSteerForce + ant.DesiredDirection) * ant.MaxSpeed;
@@ -137,7 +136,6 @@ public partial struct MovementJob : IJobEntity
         {
             velocity *= ant.MaxSpeed / math.length(velocity);
         }
-
         ant.Velocity = velocity;
 
         // Move ant

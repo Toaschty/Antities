@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
@@ -91,6 +92,14 @@ public partial struct TargetingSystem : ISystem
         if (math.distancesq(position, targetPosition) > viewRadiusSqrt)
             return false;
 
+        // Check angle to food
+        var toTarget = targetPosition - position;
+        var dot = math.dot(forward, toTarget);
+        var angle = math.acos(dot / (math.length(forward) * math.length(toTarget)));
+
+        if (angle > viewAngle / 2.0f)
+            return false;
+
         // Check if object is blocked by wall
         RaycastInput input = new RaycastInput
         {
@@ -104,18 +113,12 @@ public partial struct TargetingSystem : ISystem
             }
         };
 
-        Debug.DrawLine(position, targetPosition, Color.red, 0.5f);
-
         Unity.Physics.RaycastHit hit = new Unity.Physics.RaycastHit();
         bool haveHit = collisionWorld.CastRay(input, out hit);
 
         if (haveHit)
             return false;
 
-        var toTarget = targetPosition - position;
-        var dot = math.dot(forward, toTarget);
-        var angle = math.acos(dot / (math.length(forward) * math.length(toTarget)));
-
-        return angle < viewAngle / 2.0f;
+        return true;
     }
 }

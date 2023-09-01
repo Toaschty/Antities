@@ -21,6 +21,7 @@ public class AntAuthoring : MonoBehaviour
     public float RandomSteerStrength = 0.8f;
 
     [Header("Turn Around Settings")]
+    [Range(0f, 1f)]
     public float TurnAroundStrength = 1f;
 
     [Header("Detection Settings")]
@@ -53,7 +54,8 @@ public class AntAuthoring : MonoBehaviour
                 LastPheromonePosition = float3.zero,
                 LeftColony = Time.time,
                 LeftFood = 0f,
-                TurnAroundDirection = authoring.TurnAroundStrength,
+                TurnAroundStrength = authoring.TurnAroundStrength,
+                TurnAroundDirection = float3.zero,
                 Velocity = float3.zero,
                 ViewAngle = authoring.ViewAngle,
                 ViewRadiusSqrt = authoring.ViewRadiusSqrt,

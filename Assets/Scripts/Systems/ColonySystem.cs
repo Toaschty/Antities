@@ -52,8 +52,10 @@ public partial struct ColonySystem : ISystem
                     ant.ValueRW.LeftFood = 0f;
 
                     // Instantly turn around
-                    ant.ValueRW.Velocity = -ant.ValueRO.DesiredDirection;
-                    ant.ValueRW.DesiredDirection = -ant.ValueRO.DesiredDirection;
+                    float3 newDir = -ant.ValueRO.DesiredDirection;
+                    ant.ValueRW.DesiredDirection = newDir;
+                    ant.ValueRW.Velocity = newDir;
+                    ant.ValueRW.RandomSteerForce = newDir;
                 }
             }
         }

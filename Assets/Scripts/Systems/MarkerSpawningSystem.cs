@@ -8,7 +8,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-public partial struct MarkerSpawningSysten : ISystem
+public partial struct MarkerSpawningSystem : ISystem
 {
     NativeParallelMultiHashMap<int, float> ColonyPheromones;
     NativeParallelMultiHashMap<int, float> FoodPheromones;
@@ -162,7 +162,7 @@ public partial struct MarkerSpawnerJob : IJobEntity
             // intensity = 1 - math.pow((Time - ant.LeftFood) / markerConfig.PheromoneMaxTime, 0.25f);
         }
 
-        intensity = math.lerp(0f, markerConfig.PheromoneMaxTime, intensity);
+        intensity *= markerConfig.PheromoneMaxTime;
 
         ECB.SetComponent(0, pheromoneInstance, new Marker
         {

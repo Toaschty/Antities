@@ -35,6 +35,8 @@ public partial struct MarkerDecaySystem : ISystem
 
         ecb.Playback(state.EntityManager);
         ecb.Dispose();
+
+        state.Dependency = decayJobHandle;
     }
 }
 

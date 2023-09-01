@@ -127,8 +127,6 @@ public partial struct SensorJob : IJobEntity
             {
                 var hash = (int)math.hash(baseCoord + new int3(i, 0, j));
 
-                var count = HashMap.CountValuesForKey(hash);
-
                 foreach (var hashEntity in HashMap.GetValuesForKey(hash))
                 {
                     if (math.distancesq(transform.Position, LocalToWorldLookup.GetRefRO(hashEntity).ValueRO.Position) < sensor.RadiusSqrt)

@@ -16,6 +16,9 @@ public partial struct CollisionSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+        return;
+
+
         var collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
 
         foreach (var (transform, ant) in SystemAPI.Query<RefRW<LocalTransform>, RefRW<Ant>>())
@@ -27,7 +30,7 @@ public partial struct CollisionSystem : ISystem
                 Filter = new CollisionFilter
                 {
                     BelongsTo = ~0u,
-                    CollidesWith = ~0u,
+                    CollidesWith = 128,
                     GroupIndex = 0
                 }
             };

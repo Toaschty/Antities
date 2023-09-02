@@ -26,7 +26,7 @@ public class AntAuthoring : MonoBehaviour
 
     [Header("Detection Settings")]
     public float ViewAngle = 90f;
-    public float ViewRadiusSqrt = 16f;
+    public float ViewRadius = 4f;
     public float PickUpRadius = 0.5f;
 
     [Header("Sensors")]
@@ -57,19 +57,19 @@ public class AntAuthoring : MonoBehaviour
                 TurnAroundStrength = authoring.TurnAroundStrength,
                 TurnAroundDirection = float3.zero,
                 Velocity = float3.zero,
-                ViewAngle = authoring.ViewAngle,
-                ViewRadiusSqrt = authoring.ViewRadiusSqrt,
+                ViewAngle = authoring.ViewAngle * Mathf.Deg2Rad,
+                ViewRadius = authoring.ViewRadius,
                 Target = Entity.Null,
                 Food = Entity.Null,
-                PickUpRadius = authoring.PickUpRadius,
+                //PickUpRadius = authoring.PickUpRadius,
                 LeftSensor = GetEntity(authoring.LeftSensor, TransformUsageFlags.Dynamic),
                 CenterSensor = GetEntity(authoring.CenterSensor, TransformUsageFlags.Dynamic),
                 RightSensor = GetEntity(authoring.RightSensor, TransformUsageFlags.Dynamic),
             });
-            AddComponent<TargetFood>(entity);
-            SetComponentEnabled<TargetFood>(entity, true);
-            AddComponent<TargetColony>(entity);
-            SetComponentEnabled<TargetColony>(entity, false);
+            AddComponent<TargetingFood>(entity);
+            SetComponentEnabled<TargetingFood>(entity, true);
+            AddComponent<TargetingColony>(entity);
+            SetComponentEnabled<TargetingColony>(entity, false);
         }
     }
 }
@@ -113,7 +113,7 @@ public struct Ant : IComponentData
 
     // Detection
     public float ViewAngle;
-    public float ViewRadiusSqrt;
+    public float ViewRadius;
 
     public Entity LeftSensor;
     public Entity CenterSensor;
@@ -122,13 +122,13 @@ public struct Ant : IComponentData
     // Food
     public Entity Target;
     public Entity Food;
-    public float PickUpRadius;
+    // public float PickUpRadius;
 }
 
-public struct TargetFood : IComponentData, IEnableableComponent
+public struct TargetingFood : IComponentData, IEnableableComponent
 {
 }
 
-public struct TargetColony : IComponentData, IEnableableComponent
+public struct TargetingColony : IComponentData, IEnableableComponent
 {
 }

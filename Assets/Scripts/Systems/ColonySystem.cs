@@ -1,65 +1,108 @@
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
+using Unity.Physics;
 using Unity.Transforms;
 using UnityEngine;
 
+[UpdateAfter(typeof(AntMovementSystem))]
 public partial struct ColonySystem : ISystem
 {
+    ComponentLookup<Ant> antLookup;
+
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
+        state.RequireForUpdate<Colony>();
         state.RequireForUpdate<Ant>();
+
+        antLookup = state.GetComponentLookup<Ant>();
     }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        var ecb = new EntityCommandBuffer(Unity.Collections.Allocator.Temp);
+        var ecb = new EntityCommandBuffer(Allocator.TempJob);
+        var collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
 
-        foreach (var (colony_transform, colony) in SystemAPI.Query<RefRO<LocalToWorld>, RefRO<Colony>>())
+        antLookup.Update(ref state);
+
+        var depositJob = new DepositJob
         {
-            foreach (var (ant_transform, ant, entity) in SystemAPI.Query<RefRO<LocalToWorld>, RefRW<Ant>>().WithEntityAccess())
-            {
-                // Check if ant is carrying food
-                if (ant.ValueRO.Food == Entity.Null)
-                {
-                    if (math.distance(colony_transform.ValueRO.Position, ant_transform.ValueRO.Position) < colony.ValueRO.DepositRadius)
-                        ant.ValueRW.LeftColony = Time.time;
+            CollisionWorld = collisionWorld,
+            Time = Time.time,
+            AntLookup = antLookup,
+            ECB = ecb.AsParallelWriter(),
+        };
 
-                    continue;
-                }
-
-                // Calculate distance to ant > Deposit food
-                if (math.distance(colony_transform.ValueRO.Position, ant_transform.ValueRO.Position) < colony.ValueRO.DepositRadius)
-                {
-                    // Destroy food
-                    ecb.DestroyEntity(ant.ValueRW.Food);
-                    
-                    // Reset ant
-                    ant.ValueRW.Food = Entity.Null;
-                    ant.ValueRW.Target = Entity.Null;
-                    ant.ValueRW.State = AntState.SearchingFood;
-
-                    // Swap search target
-                    state.EntityManager.SetComponentEnabled<TargetFood>(entity, true);
-                    state.EntityManager.SetComponentEnabled<TargetColony>(entity, false);
-
-                    // Reset timings
-                    ant.ValueRW.LeftColony = Time.time;
-                    ant.ValueRW.LeftFood = 0f;
-
-                    // Instantly turn around
-                    float3 newDir = -ant.ValueRO.DesiredDirection;
-                    ant.ValueRW.DesiredDirection = newDir;
-                    ant.ValueRW.Velocity = newDir;
-                    ant.ValueRW.RandomSteerForce = newDir;
-                }
-            }
-        }
+        JobHandle depositHandle = depositJob.ScheduleParallel(state.Dependency);
+        depositHandle.Complete();
 
         ecb.Playback(state.EntityManager);
+        ecb.Dispose();
+
+        state.Dependency = depositHandle;
+    }
+}
+
+[BurstCompile]
+public partial struct DepositJob : IJobEntity
+{
+    [ReadOnly] public CollisionWorld CollisionWorld;
+    [ReadOnly] public float Time;
+
+    [NativeDisableParallelForRestriction] public ComponentLookup<Ant> AntLookup;
+    public EntityCommandBuffer.ParallelWriter ECB;
+
+    [BurstCompile]
+    public void Execute(ref LocalTransform transform, ref Colony colony)
+    {
+        NativeList<DistanceHit> hits = new NativeList<DistanceHit>(Allocator.Temp);
+        PointDistanceInput pointDistanceInput = new PointDistanceInput
+        {
+            Position = transform.Position,
+            MaxDistance = colony.DepositRadius,
+            Filter = new CollisionFilter
+            {
+                BelongsTo = ~0u,
+                CollidesWith = 512,
+                GroupIndex = 0
+            }
+        };
+
+        bool result = CollisionWorld.CalculateDistance(pointDistanceInput, ref hits);
+
+        if (!result)
+            return;
+
+        foreach (var hit in hits)
+        {
+            RefRW<Ant> ant = AntLookup.GetRefRW(hit.Entity);
+
+            ant.ValueRW.LeftColony = Time;
+
+            if (ant.ValueRO.Food != Entity.Null)
+            {
+                // Destroy food
+                ECB.DestroyEntity(0, ant.ValueRO.Food);
+
+                // Reset ant
+                ant.ValueRW.Food = Entity.Null;
+                ant.ValueRW.Target = Entity.Null;
+                ant.ValueRW.State = AntState.SearchingFood;
+
+                // Swap targeting
+                ECB.SetComponentEnabled<TargetingFood>(0, hit.Entity, true);
+                ECB.SetComponentEnabled<TargetingColony>(0, hit.Entity, false);
+
+                // Instant turn around
+                float3 newDir = -ant.ValueRO.DesiredDirection;
+                ant.ValueRW.DesiredDirection = newDir;
+                ant.ValueRW.Velocity = newDir;
+                ant.ValueRW.RandomSteerForce = newDir;
+            }
+        }
     }
 }

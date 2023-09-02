@@ -4,9 +4,12 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Physics;
+using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
+[UpdateAfter(typeof(SensorSystem))]
 public partial struct MarkerDecaySystem : ISystem
 {
     [BurstCompile]

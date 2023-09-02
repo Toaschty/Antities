@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -26,7 +28,8 @@ public partial struct AntMovementSystem : ISystem
     {
         var deltaTime = SystemAPI.Time.DeltaTime;
         var randomComponent = SystemAPI.GetSingletonRW<RandomComponent>();
-        
+        var entityExistance = state.EntityManager.UniversalQuery.GetEntityQueryMask();
+
         SensorLookup.Update(ref state);
         LocalToWorldLookup.Update(ref state);
 
@@ -37,6 +40,7 @@ public partial struct AntMovementSystem : ISystem
             SensorLookup = SensorLookup,
             LocalToWorldLookup = LocalToWorldLookup,
             Time = Time.time,
+            EntityExistance = entityExistance,
         };
 
         state.Dependency = movementJob.ScheduleParallel(state.Dependency);
@@ -50,6 +54,7 @@ public partial struct MovementJob : IJobEntity
     [ReadOnly] public float Time;
     [ReadOnly] public ComponentLookup<Sensor> SensorLookup;
     [ReadOnly] public ComponentLookup<LocalToWorld> LocalToWorldLookup;
+    [ReadOnly] public EntityQueryMask EntityExistance;
 
     [NativeDisableUnsafePtrRestriction]
     public RefRW<RandomComponent> Random;
@@ -84,10 +89,22 @@ public partial struct MovementJob : IJobEntity
             // Ant has target => Move to target
             if (ant.Target != Entity.Null)
             {
-                float3 targetPosition = LocalToWorldLookup.GetRefRO(ant.Target).ValueRO.Position;
-                float3 desiredDirection = math.normalize(targetPosition - transform.Position);
-                desiredDirection.y = 0;
-                ant.DesiredDirection = desiredDirection;
+                if (EntityExistance.MatchesIgnoreFilter(ant.Target))
+                {
+                    // Check if target entity still exists inside world
+                    float3 targetPosition = LocalToWorldLookup.GetRefRO(ant.Target).ValueRO.Position;
+                    float3 desiredDirection = math.normalize(targetPosition - transform.Position);
+                    desiredDirection.y = 0;
+                    ant.DesiredDirection = desiredDirection;
+                }
+                else
+                {
+                    ant.Target = Entity.Null;
+
+                    // Force new random direction
+                    ant.RandomSteerForce = GetRandomDirection(ant.DesiredDirection, ant.RandomDirectionAngle) * ant.RandomSteerStength;
+                    ant.RandomSteerForce.y = 0f;
+                }
             }
             // Ant has sensor data => Move according to data
             else if (leftSensorIntensity + centerSensorIntensity + rightSensorIntensity > 0.0f)
@@ -122,6 +139,11 @@ public partial struct MovementJob : IJobEntity
 
         // Calculate acceleration
         float3 desiredVelocity = math.normalize(ant.RandomSteerForce + ant.DesiredDirection) * ant.MaxSpeed;
+
+        // Safety check for NaN
+        if (desiredVelocity.Equals(float3.zero))
+            return;
+
         float3 acceleration = (desiredVelocity - ant.Velocity) * ant.SteerStrength;
 
         if (math.length(acceleration) > ant.SteerStrength)

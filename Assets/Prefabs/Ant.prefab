@@ -957,7 +957,8 @@ GameObject:
   m_Component:
   - component: {fileID: 2215259868894626829}
   - component: {fileID: 5900635384692303006}
-  m_Layer: 0
+  - component: {fileID: 1860974963648976813}
+  m_Layer: 9
   m_Name: Ant
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1002,11 +1003,32 @@ MonoBehaviour:
   RandomSteerStrength: 0.7
   TurnAroundStrength: 1
   ViewAngle: 120
-  ViewRadiusSqrt: 16
+  ViewRadius: 4
   PickUpRadius: 0.5
   LeftSensor: {fileID: 5676633501003240816}
   CenterSensor: {fileID: 8866755945350619864}
   RightSensor: {fileID: 8467508504936031138}
+--- !u!135 &1860974963648976813
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4614488211403440024}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &4803802240269708178
 GameObject:
   m_ObjectHideFlags: 0

@@ -11,6 +11,7 @@ public class AntAuthoring : MonoBehaviour
     public float WanderStrength = 1f;
     public float SensorStrength = 0.9f;
     public float RandomDirectionAngle = 90f;
+    public float GroundLevel = 0f;
 
     [Header("Random Movement Settings")]
     public float MaxRandomSteerDuration = 1f;
@@ -45,6 +46,8 @@ public class AntAuthoring : MonoBehaviour
                 RandomDirectionAngle = authoring.RandomDirectionAngle,
                 RandomSteerForce = float3.zero,
                 RandomSteerStength = authoring.RandomSteerStrength,
+                IsGrounded = false,
+                GroundNormal = new float3(0.0f, 1.0f, 0.0f),
                 MaxRandomSteerDuration = authoring.MaxRandomSteerDuration,
                 NextRandomSteerTime = Time.time,
                 LastPheromonePosition = float3.zero,
@@ -66,6 +69,11 @@ public class AntAuthoring : MonoBehaviour
             AddComponent<TargetingColony>(entity);
             SetComponentEnabled<TargetingColony>(entity, false);
         }
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.DrawCube(new float3(0.0f, GroundLevel, 0.0f), new float3(1.0f, 0.01f, 1.0f));
     }
 }
 
@@ -92,6 +100,9 @@ public struct Ant : IComponentData
     public float RandomSteerStength;
     public float NextRandomSteerTime;
     public float3 RandomSteerForce;
+
+    public bool IsGrounded;
+    public float3 GroundNormal;
 
     // Pheromone
     public float3 LastPheromonePosition;

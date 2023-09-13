@@ -7,6 +7,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Transforms;
+using UnityEngine.UIElements;
 
 public partial struct MarkerSpawningSystem : ISystem
 {
@@ -83,7 +84,7 @@ public partial struct SpawningJob : IJobEntity
 
         ECB.SetComponent(0, pheromoneInstance, new LocalTransform
         {
-            Position = transform.Position,
+            Position = transform.Position + new float3(0.0f, 0.2f, 0.0f),
             Rotation = quaternion.identity,
             Scale = MarkerConfig.Scale
         });

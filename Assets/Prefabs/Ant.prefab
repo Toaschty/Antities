@@ -974,7 +974,7 @@ Transform:
   m_GameObject: {fileID: 4614488211403440024}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.25, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -999,6 +999,7 @@ MonoBehaviour:
   WanderStrength: 0.1
   SensorStrength: 1
   RandomDirectionAngle: 180
+  GroundLevel: 0
   MaxRandomSteerDuration: 2
   RandomSteerStrength: 0.7
   TurnAroundStrength: 1
@@ -1027,8 +1028,8 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Radius: 0.18
+  m_Center: {x: 0, y: 0.18, z: 0}
 --- !u!1 &4803802240269708178
 GameObject:
   m_ObjectHideFlags: 0
@@ -1137,7 +1138,7 @@ Transform:
   m_GameObject: {fileID: 5453191834378859696}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.25, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

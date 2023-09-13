@@ -3,8 +3,10 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Physics;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 [UpdateAfter(typeof(SensorSystem))]
 public partial struct AntMovementSystem : ISystem
@@ -90,9 +92,9 @@ public partial struct MovementJob : IJobEntity
                 {
                     // Check if target entity still exists inside world
                     float3 targetPosition = LocalToWorldLookup.GetRefRO(ant.Target).ValueRO.Position;
-                    float3 desiredDirection = math.normalize(targetPosition - transform.Position);
-                    desiredDirection.y = 0;
-                    ant.DesiredDirection = desiredDirection;
+                    float3 dir = math.normalize(targetPosition - transform.Position);
+                    dir.y = 0;
+                    ant.DesiredDirection = dir;
                 }
                 else
                 {
@@ -122,9 +124,9 @@ public partial struct MovementJob : IJobEntity
 
                 if (sensorPosition.x != 0 && sensorPosition.y != 0 && sensorPosition.z != 0)
                 {
-                    float3 desiredDirection = math.normalize(sensorPosition - transform.Position) * ant.SensorStength;
-                    desiredDirection.y = 0;
-                    ant.DesiredDirection = desiredDirection;
+                    float3 dir = math.normalize(sensorPosition - transform.Position) * ant.SensorStength;
+                    dir.y = 0;
+                    ant.DesiredDirection = dir;
                 }
             }
             // No data => Random movement
@@ -135,31 +137,43 @@ public partial struct MovementJob : IJobEntity
         }
 
         // Calculate acceleration
-        float3 desiredVelocity = math.normalize(ant.RandomSteerForce + ant.DesiredDirection) * ant.MaxSpeed;
+        float3 desiredDirection = math.normalize(ant.RandomSteerForce + ant.DesiredDirection) * ant.MaxSpeed;
 
         // Safety check for NaN
-        if (desiredVelocity.Equals(float3.zero))
+        if (desiredDirection.Equals(float3.zero))
             return;
 
-        float3 acceleration = (desiredVelocity - ant.Velocity) * ant.SteerStrength;
+        // float3 projection = desiredDirection - math.dot(desiredDirection, ant.GroundNormal) * ant.GroundNormal;
 
-        if (math.length(acceleration) > ant.SteerStrength)
+        // Gravity
+        ant.Velocity.y += -10f * DeltaTime;
+
+        if (ant.IsGrounded)
         {
-            acceleration *= ant.SteerStrength / math.length(acceleration);
+            float3 acceleration = (desiredDirection - ant.Velocity) * ant.SteerStrength;
+
+            if (math.length(acceleration) > ant.SteerStrength)
+                acceleration *= ant.SteerStrength / math.length(acceleration);
+
+            // Calculate velocity
+            float3 velocity = ant.Velocity + acceleration * DeltaTime;
+
+            if (math.length(velocity) > ant.MaxSpeed)
+                velocity *= ant.MaxSpeed / math.length(velocity);
+
+            ant.Velocity = velocity - math.dot(velocity, ant.GroundNormal) * ant.GroundNormal;
         }
-
-        // Calculate velocity
-        float3 velocity = ant.Velocity + acceleration * DeltaTime;
-
-        if (math.length(velocity) > ant.MaxSpeed)
+        else
         {
-            velocity *= ant.MaxSpeed / math.length(velocity);
+            // Gravity
+            ant.Velocity.y += -10f * DeltaTime;
         }
-        ant.Velocity = velocity;
 
         // Move ant
-        transform.Position += velocity * DeltaTime;
-        transform.Rotation = quaternion.RotateY(-math.atan2(velocity.z, velocity.x) + math.PI / 2f);
+        transform.Position += ant.Velocity * DeltaTime;
+        // transform.Rotation = quaternion.RotateY(-math.atan2(ant.Velocity.z, ant.Velocity.x) + math.PI / 2f);
+        if (math.length(ant.Velocity) > 0.001f)
+            transform.Rotation = Quaternion.LookRotation(ant.Velocity, ant.GroundNormal);
     }
 
     [BurstCompile]

@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 
 public class SensorAuthoring : MonoBehaviour
@@ -13,8 +10,7 @@ public class SensorAuthoring : MonoBehaviour
     {
         public override void Bake(SensorAuthoring authoring)
         {
-            var entity = GetEntity(TransformUsageFlags.Dynamic);
-
+            var entity = GetEntity(TransformUsageFlags.Renderable);
             AddComponent(entity, new Sensor
             {
                 Ant = GetEntity(authoring.Ant, TransformUsageFlags.None),

@@ -16,7 +16,7 @@ public class AntSpawnerAuthoring : MonoBehaviour
             AddComponent(entity, new AntSpawner
             {
                 count = authoring.Count,
-                ant = GetEntity(authoring.Ant, TransformUsageFlags.Dynamic),
+                ant = GetEntity(authoring.Ant, TransformUsageFlags.None),
             });
         }
     }

@@ -487,15 +487,14 @@ GameObject:
   - component: {fileID: 750262018}
   - component: {fileID: 750262019}
   - component: {fileID: 750262020}
-  - component: {fileID: 750262021}
-  - component: {fileID: 750262022}
   - component: {fileID: 750262024}
+  - component: {fileID: 750262025}
   m_Layer: 0
   m_Name: Config
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &750262018
 Transform:
@@ -524,7 +523,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a20088806e59514985b0c55275599ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Count: 1000
+  Count: 200
   Ant: {fileID: 4614488211403440024, guid: 71c905a6e8e687e478ef393adcaec5e4, type: 3}
 --- !u!114 &750262020
 MonoBehaviour:
@@ -538,39 +537,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e6fa32de1d8dff548a390a6eab4bf98c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DistanceBetweenMarkers: 1
-  PheromoneMaxTime: 20
+  DistanceBetweenMarkers: 1.5
+  PheromoneMaxTime: 30
   ToHomeMarker: {fileID: 8873386266753623198, guid: a2c9e1b72d05a62468f8b875f243fbc0,
     type: 3}
   ToFoodMarker: {fileID: 1549803845636493227, guid: 40d42048ea2b2d744a47ecc846ebeeb3,
     type: 3}
---- !u!114 &750262021
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 750262017}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 360f2f31aeb0c56429ff58ae23125ebf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  GridSize: 0.5
-  MaxColonyPheromonePerGrid: 2000
-  MaxFoodPheromonePerGrid: 2000
---- !u!114 &750262022
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 750262017}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c7a0884c3bacc9a4aa3e362f3595132f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &750262024
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -588,10 +560,22 @@ MonoBehaviour:
     x: -0
     y: -9.81
     z: -0
-  m_SolverIterationCount: 4
+  m_SolverIterationCount: 1
   m_EnableSolverStabilizationHeuristic: 0
   m_MultiThreaded: 1
   m_SynchronizeCollisionWorld: 0
+--- !u!114 &750262025
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 750262017}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7a0884c3bacc9a4aa3e362f3595132f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1049164295
 GameObject:
   m_ObjectHideFlags: 0
@@ -1167,7 +1151,7 @@ PrefabInstance:
     - target: {fileID: 4330161322189639260, guid: f0b0bf1a373a47c4bb544db0b7469fba,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 16.68
+      value: 28.16
       objectReference: {fileID: 0}
     - target: {fileID: 4330161322189639260, guid: f0b0bf1a373a47c4bb544db0b7469fba,
         type: 3}
@@ -1177,7 +1161,7 @@ PrefabInstance:
     - target: {fileID: 4330161322189639260, guid: f0b0bf1a373a47c4bb544db0b7469fba,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.85
+      value: 23.66
       objectReference: {fileID: 0}
     - target: {fileID: 4330161322189639260, guid: f0b0bf1a373a47c4bb544db0b7469fba,
         type: 3}

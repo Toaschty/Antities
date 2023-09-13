@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 
@@ -20,8 +18,8 @@ public class MarkerConfigAuthoring : MonoBehaviour
             {
                 DistanceBetweenMarkers = authoring.DistanceBetweenMarkers,
                 PheromoneMaxTime = authoring.PheromoneMaxTime,
-                ToHomeMarker = GetEntity(authoring.ToHomeMarker, TransformUsageFlags.Renderable),
-                ToFoodMarker = GetEntity(authoring.ToFoodMarker, TransformUsageFlags.Renderable),
+                ToHomeMarker = GetEntity(authoring.ToHomeMarker, TransformUsageFlags.None),
+                ToFoodMarker = GetEntity(authoring.ToFoodMarker, TransformUsageFlags.None),
                 Scale = authoring.ToHomeMarker.transform.localScale[0]
             });
         }
@@ -31,7 +29,7 @@ public class MarkerConfigAuthoring : MonoBehaviour
 public struct MarkerConfig : IComponentData
 {
     public float DistanceBetweenMarkers;
-    public float PheromoneMaxTime;
+    public double PheromoneMaxTime;
 
     public Entity ToHomeMarker;
     public Entity ToFoodMarker;

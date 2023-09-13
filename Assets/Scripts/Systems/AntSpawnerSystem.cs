@@ -30,6 +30,7 @@ public partial struct AntSpawnerSystem : ISystem
 
         foreach (var ant in SystemAPI.Query<RefRW<Ant>>())
         {
+            ant.ValueRW.LastPheromonePosition = random.NextFloat3Direction();
             ant.ValueRW.DesiredDirection = random.NextFloat3Direction();
             ant.ValueRW.DesiredDirection.y = 0f;
             ant.ValueRW.Velocity = ant.ValueRO.DesiredDirection;

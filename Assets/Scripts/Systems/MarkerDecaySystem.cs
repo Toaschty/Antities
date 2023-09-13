@@ -1,15 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
-using Unity.Physics;
-using Unity.Rendering;
 using Unity.Transforms;
-using UnityEngine;
 
-[UpdateAfter(typeof(SensorSystem))]
 public partial struct MarkerDecaySystem : ISystem
 {
     [BurstCompile]
@@ -58,7 +52,7 @@ public partial struct DecayJob : IJobEntity
         marker.Intensity -= DeltaTime;
 
         // Scale down marker model depending on time
-        transform.Scale = (marker.Intensity / MarkerConfig.PheromoneMaxTime) * MarkerConfig.Scale;
+        transform.Scale = (float)(marker.Intensity / MarkerConfig.PheromoneMaxTime) * MarkerConfig.Scale;
 
         // Destroy marker if necessary
         if (marker.Intensity < 0)

@@ -5,9 +5,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Transforms;
-using UnityEngine;
 
-[UpdateAfter(typeof(AntMovementSystem))]
 public partial struct ColonySystem : ISystem
 {
     ComponentLookup<Ant> antLookup;
@@ -32,7 +30,7 @@ public partial struct ColonySystem : ISystem
         var depositJob = new DepositJob
         {
             CollisionWorld = collisionWorld,
-            Time = Time.time,
+            Time = SystemAPI.Time.ElapsedTime,
             AntLookup = antLookup,
             ECB = ecb.AsParallelWriter(),
         };
@@ -51,7 +49,7 @@ public partial struct ColonySystem : ISystem
 public partial struct DepositJob : IJobEntity
 {
     [ReadOnly] public CollisionWorld CollisionWorld;
-    [ReadOnly] public float Time;
+    [ReadOnly] public double Time;
 
     [NativeDisableParallelForRestriction] public ComponentLookup<Ant> AntLookup;
     public EntityCommandBuffer.ParallelWriter ECB;
@@ -66,8 +64,8 @@ public partial struct DepositJob : IJobEntity
             MaxDistance = colony.DepositRadius,
             Filter = new CollisionFilter
             {
-                BelongsTo = ~0u,
-                CollidesWith = 512,
+                BelongsTo = 256u, // Colony
+                CollidesWith = 512u, // Ant
                 GroupIndex = 0
             }
         };
@@ -104,5 +102,7 @@ public partial struct DepositJob : IJobEntity
                 ant.ValueRW.RandomSteerForce = newDir;
             }
         }
+
+        hits.Dispose();
     }
 }

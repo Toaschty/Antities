@@ -1,9 +1,9 @@
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Transforms;
-using UnityEngine;
 
 public partial struct CollisionSystem : ISystem
 {
@@ -16,37 +16,51 @@ public partial struct CollisionSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        return;
-
-
         var collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
 
-        foreach (var (transform, ant) in SystemAPI.Query<RefRW<LocalTransform>, RefRW<Ant>>())
+        var collisionJob = new CollisionJob
         {
-            RaycastInput input = new RaycastInput()
+            CollisionWorld = collisionWorld,
+        };
+
+        var handle = collisionJob.ScheduleParallel(state.Dependency);
+        handle.Complete();
+
+        state.Dependency = handle;
+    }
+}
+
+[BurstCompile]
+public partial struct CollisionJob : IJobEntity
+{
+    [ReadOnly] public CollisionWorld CollisionWorld;
+
+    [BurstCompile]
+    public void Execute(in LocalTransform transform, ref Ant ant)
+    {
+        RaycastInput input = new RaycastInput()
+        {
+            Start = transform.Position,
+            End = transform.Position + transform.Forward() * 0.5f,
+            Filter = new CollisionFilter
             {
-                Start = transform.ValueRO.Position,
-                End = transform.ValueRO.Position + transform.ValueRO.Forward() * 0.5f,
-                Filter = new CollisionFilter
-                {
-                    BelongsTo = ~0u,
-                    CollidesWith = 128,
-                    GroupIndex = 0
-                }
-            };
-
-            Unity.Physics.RaycastHit hit = new Unity.Physics.RaycastHit();
-            bool haveHit = collisionWorld.CastRay(input, out hit);
-
-            // Invert direction on hit with wall
-            if (haveHit)
-            {
-                float3 newDirection = math.reflect(ant.ValueRW.Velocity, hit.SurfaceNormal);
-
-                ant.ValueRW.Velocity = newDirection;
-                ant.ValueRW.RandomSteerForce = newDirection;
-                ant.ValueRW.DesiredDirection = newDirection;
+                BelongsTo = 512u, // Ant
+                CollidesWith = 128u, // Wall
+                GroupIndex = 0
             }
+        };
+
+        RaycastHit hit = new RaycastHit();
+        bool haveHit = CollisionWorld.CastRay(input, out hit);
+
+        // Invert direction on hit with wall
+        if (haveHit)
+        {
+            float3 newDirection = math.reflect(ant.Velocity, hit.SurfaceNormal);
+
+            ant.Velocity = newDirection;
+            ant.RandomSteerForce = newDirection;
+            ant.DesiredDirection = newDirection;
         }
     }
 }

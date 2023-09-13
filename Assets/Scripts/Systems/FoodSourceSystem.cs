@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -7,11 +5,8 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Transforms;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.UI;
 
-[UpdateBefore(typeof(AntMovementSystem))]
 public partial struct FoodSourceSystem : ISystem
 {
     ComponentLookup<Ant> antLookup;
@@ -38,7 +33,7 @@ public partial struct FoodSourceSystem : ISystem
             AntLookup = antLookup,
             CollisionWorld = collisionWorld,
             ECB = ecb.AsParallelWriter(),
-            Time = Time.time,
+            Time = SystemAPI.Time.ElapsedTime,
         };
 
         JobHandle sourceHandle = sourceJob.ScheduleParallel(state.Dependency);
@@ -55,7 +50,7 @@ public partial struct FoodSourceSystem : ISystem
 public partial struct SourceJob : IJobEntity
 {
     [ReadOnly] public CollisionWorld CollisionWorld;
-    [ReadOnly] public float Time;
+    [ReadOnly] public double Time;
 
     [NativeDisableParallelForRestriction] public ComponentLookup<Ant> AntLookup;
     public EntityCommandBuffer.ParallelWriter ECB;
@@ -70,8 +65,8 @@ public partial struct SourceJob : IJobEntity
             MaxDistance = food.PickUpRadius,
             Filter = new CollisionFilter
             {
-                BelongsTo = ~0u,
-                CollidesWith = 512,
+                BelongsTo = 64u, // Food
+                CollidesWith = 512u, // Ant
                 GroupIndex = 0
             }
         };
@@ -137,5 +132,7 @@ public partial struct SourceJob : IJobEntity
                 }
             }
         }
+
+        hits.Dispose();
     }
 }

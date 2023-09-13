@@ -18,7 +18,7 @@ public class FoodAuthoring : MonoBehaviour
                 MaxAmount = authoring.FoodAmount,
                 Amount = authoring.FoodAmount,
                 PickUpRadius = authoring.PickUpRadius,
-                CarryModel = GetEntity(authoring.CarryModel, TransformUsageFlags.Dynamic),
+                CarryModel = GetEntity(authoring.CarryModel, TransformUsageFlags.None),
             });
         }
     }

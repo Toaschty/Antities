@@ -1,10 +1,6 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using Unity.Core;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Transforms;
+using Unity.Physics;
 using UnityEngine;
 
 public class AntAuthoring : MonoBehaviour
@@ -61,10 +57,9 @@ public class AntAuthoring : MonoBehaviour
                 ViewRadius = authoring.ViewRadius,
                 Target = Entity.Null,
                 Food = Entity.Null,
-                //PickUpRadius = authoring.PickUpRadius,
-                LeftSensor = GetEntity(authoring.LeftSensor, TransformUsageFlags.Dynamic),
-                CenterSensor = GetEntity(authoring.CenterSensor, TransformUsageFlags.Dynamic),
-                RightSensor = GetEntity(authoring.RightSensor, TransformUsageFlags.Dynamic),
+                LeftSensor = GetEntity(authoring.LeftSensor, TransformUsageFlags.None),
+                CenterSensor = GetEntity(authoring.CenterSensor, TransformUsageFlags.None),
+                RightSensor = GetEntity(authoring.RightSensor, TransformUsageFlags.None),
             });
             AddComponent<TargetingFood>(entity);
             SetComponentEnabled<TargetingFood>(entity, true);
@@ -73,6 +68,7 @@ public class AntAuthoring : MonoBehaviour
         }
     }
 }
+
 
 public enum AntState
 {
@@ -101,8 +97,8 @@ public struct Ant : IComponentData
     public float3 LastPheromonePosition;
 
     // Timings
-    public float LeftColony;
-    public float LeftFood;
+    public double LeftColony;
+    public double LeftFood;
 
     // Turn around
     public float TurnAroundStrength;
@@ -122,7 +118,6 @@ public struct Ant : IComponentData
     // Food
     public Entity Target;
     public Entity Food;
-    // public float PickUpRadius;
 }
 
 public struct TargetingFood : IComponentData, IEnableableComponent

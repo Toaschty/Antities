@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 
@@ -12,7 +10,8 @@ public class RandomAuthoring : MonoBehaviour
             var entity = GetEntity(TransformUsageFlags.None);
             AddComponent(entity, new RandomComponent
             {
-                Random = new Unity.Mathematics.Random((uint)System.DateTime.Now.Ticks)
+                //Random = new Unity.Mathematics.Random((uint)System.DateTime.Now.Ticks)
+                Random = Unity.Mathematics.Random.CreateFromIndex((uint)System.DateTime.Now.Ticks)
             });
         }
     }

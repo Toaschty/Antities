@@ -1,7 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Net;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -19,8 +15,9 @@ public partial struct AntMovementSystem : ISystem
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<Ant>();
-        SensorLookup = state.GetComponentLookup<Sensor>(true);
-        LocalToWorldLookup = state.GetComponentLookup<LocalToWorld>(true);
+
+        SensorLookup = state.GetComponentLookup<Sensor>();
+        LocalToWorldLookup = state.GetComponentLookup<LocalToWorld>();
     }
 
     [BurstCompile]
@@ -63,7 +60,7 @@ public partial struct MovementJob : IJobEntity
     public void Execute(ref LocalTransform transform, ref Ant ant)
     {
         HandleRandomSteering(ref ant, Time);
-
+        
         // Get sensor data
         float leftSensorIntensity = SensorLookup.GetRefRO(ant.LeftSensor).ValueRO.Intensity;
         float centerSensorIntensity = SensorLookup.GetRefRO(ant.CenterSensor).ValueRO.Intensity;
@@ -194,3 +191,4 @@ public partial struct MovementJob : IJobEntity
         return math.normalize(new float3(math.cos(randomAngle), 0f, math.sin(randomAngle)));
     }
 }
+

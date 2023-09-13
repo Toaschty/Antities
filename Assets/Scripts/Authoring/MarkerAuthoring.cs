@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Entities;
-using Unity.Transforms;
 using UnityEngine;
 
 public class MarkerAuthoring : MonoBehaviour
@@ -10,7 +7,7 @@ public class MarkerAuthoring : MonoBehaviour
     {
         public override void Bake(MarkerAuthoring authoring)
         {
-            var entity = GetEntity(TransformUsageFlags.Dynamic);
+            var entity = GetEntity(TransformUsageFlags.Renderable);
             AddComponent(entity, new Marker
             {
                 Intensity = float.MaxValue,

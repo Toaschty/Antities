@@ -143,14 +143,11 @@ public partial struct MovementJob : IJobEntity
         if (desiredDirection.Equals(float3.zero))
             return;
 
-        // float3 projection = desiredDirection - math.dot(desiredDirection, ant.GroundNormal) * ant.GroundNormal;
-
-        // Gravity
-        ant.Velocity.y += -10f * DeltaTime;
-
         if (ant.IsGrounded)
         {
-            float3 acceleration = (desiredDirection - ant.Velocity) * ant.SteerStrength;
+            float3 projectedDesiredDirection = math.normalize(desiredDirection - math.dot(desiredDirection, ant.GroundNormal) * ant.GroundNormal) * math.length(desiredDirection);
+
+            float3 acceleration = (projectedDesiredDirection - ant.Velocity) * ant.SteerStrength;
 
             if (math.length(acceleration) > ant.SteerStrength)
                 acceleration *= ant.SteerStrength / math.length(acceleration);
@@ -171,6 +168,7 @@ public partial struct MovementJob : IJobEntity
 
         // Move ant
         transform.Position += ant.Velocity * DeltaTime;
+
         // transform.Rotation = quaternion.RotateY(-math.atan2(ant.Velocity.z, ant.Velocity.x) + math.PI / 2f);
         if (math.length(ant.Velocity) > 0.001f)
             transform.Rotation = Quaternion.LookRotation(ant.Velocity, ant.GroundNormal);

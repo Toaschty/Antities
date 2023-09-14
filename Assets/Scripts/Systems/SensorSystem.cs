@@ -91,8 +91,8 @@ public partial struct PhysicsSensorJob : IJobEntity
         }
         sensor.Intensity = sIntensity;
 
-        if (hits.Length > 50)
-            ECB.DestroyEntity(0, hits[0].Entity);
+        //if (hits.Length > 50)
+        //    ECB.DestroyEntity(0, hits[0].Entity);
 
         hits.Dispose();
     }

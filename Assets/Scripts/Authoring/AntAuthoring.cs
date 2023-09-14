@@ -102,6 +102,7 @@ public struct Ant : IComponentData
     public float3 RandomSteerForce;
 
     public bool IsGrounded;
+    public bool IsSliding;
     public float3 GroundNormal;
 
     // Pheromone

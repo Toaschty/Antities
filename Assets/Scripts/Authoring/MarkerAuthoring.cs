@@ -1,3 +1,4 @@
+using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
@@ -20,6 +21,12 @@ public struct Marker : IComponentData
 {
     // Current pheromone intensity
     public float Intensity;
+}
+
+public struct SubMarker : IBufferElementData
+{
+    public float Intensity;
+
 }
 
 public struct FoodMarker : IComponentData

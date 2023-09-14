@@ -106,8 +106,8 @@ public partial struct TargetingJob : IJobEntity
             RaycastHit rayCastHit = new RaycastHit();
 
             // Skip if hit by a wall
-            if (CollisionWorld.CastRay(input, out rayCastHit))
-                continue;
+            //if (CollisionWorld.CastRay(input, out rayCastHit))
+            //    continue;
 
             if (hit.Distance < distance)
             {

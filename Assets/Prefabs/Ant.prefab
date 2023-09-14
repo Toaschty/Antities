@@ -957,7 +957,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2215259868894626829}
   - component: {fileID: 5900635384692303006}
-  - component: {fileID: 1860974963648976813}
+  - component: {fileID: 4868373200538593041}
   m_Layer: 9
   m_Name: Ant
   m_TagString: Untagged
@@ -995,7 +995,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MaxSpeed: 3
-  SteerStrength: 5
+  SteerStrength: 4
   WanderStrength: 0.1
   SensorStrength: 1
   RandomDirectionAngle: 180
@@ -1009,7 +1009,7 @@ MonoBehaviour:
   LeftSensor: {fileID: 5676633501003240816}
   CenterSensor: {fileID: 8866755945350619864}
   RightSensor: {fileID: 8467508504936031138}
---- !u!135 &1860974963648976813
+--- !u!135 &4868373200538593041
 SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1028,8 +1028,8 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.18
-  m_Center: {x: 0, y: 0.18, z: 0}
+  m_Radius: 0.2
+  m_Center: {x: 0, y: 0.2, z: 0}
 --- !u!1 &4803802240269708178
 GameObject:
   m_ObjectHideFlags: 0

@@ -60,6 +60,10 @@ public partial struct SpawningJob : IJobEntity
                 return;
         }
 
+        // Check nearby pheromones (Spawn new one or update existing ones)
+
+        return;
+
         // Spawn new marker
         Entity pheromoneInstance = Entity.Null;
         double intensity = 0f;

@@ -132,6 +132,10 @@ public struct Ant : IComponentData
     public Entity Food;
 }
 
+public struct SkipMarkerSpawning : IComponentData
+{ 
+}
+
 public struct TargetingFood : IComponentData, IEnableableComponent
 {
 }

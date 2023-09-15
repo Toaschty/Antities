@@ -5,23 +5,26 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Physics;
 using Unity.Transforms;
+using Unity.VisualScripting;
 
 public partial struct SensorSystem : ISystem
 {
     // Lookups
     public ComponentLookup<Ant> AntLookup;
-    public ComponentLookup<Marker> MarkerLookup;
+    // public ComponentLookup<Marker> MarkerLookup;
+    private BufferLookup<MarkerData> MarkerDataLookup;
 
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<Ant>();
         state.RequireForUpdate<Sensor>();
-        state.RequireForUpdate<Marker>();
+        // state.RequireForUpdate<Marker>();
 
         // Create lookups
         AntLookup = state.GetComponentLookup<Ant>();
-        MarkerLookup = state.GetComponentLookup<Marker>();
+        // MarkerLookup = state.GetComponentLookup<Marker>();
+        MarkerDataLookup = state.GetBufferLookup<MarkerData>();
     }
 
     [BurstCompile]
@@ -31,12 +34,14 @@ public partial struct SensorSystem : ISystem
         var ECB = new EntityCommandBuffer(Allocator.TempJob);
 
         AntLookup.Update(ref state);
-        MarkerLookup.Update(ref state);
+        MarkerDataLookup.Update(ref state);
+        // MarkerLookup.Update(ref state);
 
         var sensorJob = new PhysicsSensorJob
         {
             AntsLookup = AntLookup,
-            MarkerLookup = MarkerLookup,
+            // MarkerLookup = MarkerLookup,
+            MarkerDataLookup = MarkerDataLookup,
             CollisionWorld = collisionWorld,
             ECB = ECB.AsParallelWriter(),
         };
@@ -55,9 +60,11 @@ public partial struct SensorSystem : ISystem
 public partial struct PhysicsSensorJob : IJobEntity
 {
     [ReadOnly] public ComponentLookup<Ant> AntsLookup;
-    [ReadOnly] public ComponentLookup<Marker> MarkerLookup;
+    // [ReadOnly] public ComponentLookup<Marker> MarkerLookup;
     [ReadOnly] public CollisionWorld CollisionWorld;
 
+    [NativeDisableParallelForRestriction]
+    public BufferLookup<MarkerData> MarkerDataLookup;
     public EntityCommandBuffer.ParallelWriter ECB;
 
     [BurstCompile]
@@ -84,15 +91,22 @@ public partial struct PhysicsSensorJob : IJobEntity
 
         // Calculate intensity of sensor
         float sIntensity = 0f;
+        float mCount = 0f;
         foreach (var hit in hits)
         {
-            if (MarkerLookup.HasComponent(hit.Entity))
-                sIntensity += MarkerLookup.GetRefRO(hit.Entity).ValueRO.Intensity;
-        }
-        sensor.Intensity = sIntensity;
+            DynamicBuffer<MarkerData> data = MarkerDataLookup[hit.Entity];
 
-        //if (hits.Length > 50)
-        //    ECB.DestroyEntity(0, hits[0].Entity);
+            for (int i = 0; i < data.Length; i++)
+            {
+                sIntensity += data.ElementAt(i).Intensity;
+                mCount++;
+            }
+        }
+
+        if (mCount > 0)
+            sensor.Intensity = sIntensity; // / mCount;
+        else
+            sensor.Intensity = 0f;
 
         hits.Dispose();
     }

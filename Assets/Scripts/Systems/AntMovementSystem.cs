@@ -111,18 +111,18 @@ public partial struct MovementJob : IJobEntity
                 float3 sensorPosition = float3.zero;
 
                 // Left sensor
-                if (leftSensorIntensity > centerSensorIntensity && leftSensorIntensity > rightSensorIntensity)
+                if (leftSensorIntensity > centerSensorIntensity && leftSensorIntensity >= rightSensorIntensity)
                     sensorPosition = LocalToWorldLookup.GetRefRO(ant.LeftSensor).ValueRO.Position;
 
                 // Right
-                if (rightSensorIntensity > leftSensorIntensity && rightSensorIntensity > centerSensorIntensity)
+                if (rightSensorIntensity >= leftSensorIntensity && rightSensorIntensity > centerSensorIntensity)
                     sensorPosition = LocalToWorldLookup.GetRefRO(ant.RightSensor).ValueRO.Position;
 
                 // Center
-                if (centerSensorIntensity > leftSensorIntensity && centerSensorIntensity > rightSensorIntensity)
+                if (centerSensorIntensity >= leftSensorIntensity && centerSensorIntensity >= rightSensorIntensity)
                     sensorPosition = LocalToWorldLookup.GetRefRO(ant.CenterSensor).ValueRO.Position;
 
-                if (sensorPosition.x != 0 && sensorPosition.y != 0 && sensorPosition.z != 0)
+                if (sensorPosition.x != 0 || sensorPosition.y != 0 || sensorPosition.z != 0)
                 {
                     float3 dir = math.normalize(sensorPosition - transform.Position) * ant.SensorStength;
                     dir.y = 0;

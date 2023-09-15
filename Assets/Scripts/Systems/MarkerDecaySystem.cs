@@ -1,15 +1,22 @@
+using System.Text;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Mathematics;
 using Unity.Transforms;
+using Unity.VisualScripting;
 
 public partial struct MarkerDecaySystem : ISystem
 {
+    private BufferLookup<MarkerData> MarkerLookup;
+
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<Marker>();
+
+        MarkerLookup = state.GetBufferLookup<MarkerData>();
     }
 
     [BurstCompile]
@@ -20,11 +27,14 @@ public partial struct MarkerDecaySystem : ISystem
 
         var ecb = new EntityCommandBuffer(Allocator.TempJob);
 
+        MarkerLookup.Update(ref state);
+
         var decayJob = new DecayJob
         {
             DeltaTime = deltaTime,
             MarkerConfig = markerConfig,
             ECB = ecb.AsParallelWriter(),
+            MarkerLookup = MarkerLookup,
         };
 
         JobHandle decayJobHandle = decayJob.ScheduleParallel(state.Dependency);
@@ -43,19 +53,35 @@ public partial struct DecayJob : IJobEntity
     [ReadOnly] public float DeltaTime;
     [ReadOnly] public MarkerConfig MarkerConfig;
 
+    [NativeDisableParallelForRestriction]
+    public BufferLookup<MarkerData> MarkerLookup;
     public EntityCommandBuffer.ParallelWriter ECB;
 
     [BurstCompile]
-    public void Execute(Entity entity, ref Marker marker, ref LocalTransform transform)
+    public void Execute(Entity entity, Marker marker, ref LocalTransform transform)
     {
-        // Reduce intensity by deltaTime
-        marker.Intensity -= DeltaTime;
+        DynamicBuffer<MarkerData> data = MarkerLookup[entity];
 
-        // Scale down marker model depending on time
-        transform.Scale = (float)(marker.Intensity / MarkerConfig.PheromoneMaxTime) * MarkerConfig.Scale;
+        float completeIntensity = 0f;
 
-        // Destroy marker if necessary
-        if (marker.Intensity < 0)
-            ECB.DestroyEntity(0, entity);
+        for (int i = 0; i < data.Length; i++)
+        {
+            data.ElementAt(i).Intensity -= DeltaTime;
+
+            completeIntensity += data.ElementAt(i).Intensity;
+
+            if (data.ElementAt(i).Intensity < 0)
+            {
+                data.RemoveAt(i);
+
+                if (data.IsEmpty)
+                {
+                    ECB.DestroyEntity(0, entity);
+                    return;
+                }
+            }
+        }
+        
+        transform.Scale = (float)((completeIntensity / data.Length) / MarkerConfig.PheromoneMaxTime) * MarkerConfig.Scale;
     }
 }

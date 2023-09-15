@@ -115,9 +115,15 @@ public partial struct SourceJob : IJobEntity
                 ECB.SetComponentEnabled<TargetingColony>(0, hit.Entity, true);
 
                 // Switch state of ant
-                ant.ValueRW.State = AntState.TurningAround;
+                ant.ValueRW.State = AntState.GoingHome;
+                ant.ValueRW.Velocity = -ant.ValueRO.Velocity;
+                ant.ValueRW.DesiredDirection = ant.ValueRO.Velocity;
+                ant.ValueRW.RandomSteerForce = ant.ValueRO.Velocity;
+
                 ant.ValueRW.TurnAroundDirection = -ant.ValueRO.DesiredDirection;
                 ant.ValueRW.LeftFood = Time;
+
+                ECB.RemoveComponent<SkipMarkerSpawning>(0, hit.Entity);
 
                 ant.ValueRW.Food = carryFood;
                 ECB.SetComponent<Ant>(0, hit.Entity, ant.ValueRO);

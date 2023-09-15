@@ -9,24 +9,21 @@ public class MarkerAuthoring : MonoBehaviour
         public override void Bake(MarkerAuthoring authoring)
         {
             var entity = GetEntity(TransformUsageFlags.Renderable);
-            AddComponent(entity, new Marker
-            {
-                Intensity = float.MaxValue,
-            });
+            AddComponent(entity, new Marker());
         }
     }
 }
 
 public struct Marker : IComponentData
 {
-    // Current pheromone intensity
-    public float Intensity;
+
 }
 
-public struct SubMarker : IBufferElementData
+[InternalBufferCapacity(2048)]
+public struct MarkerData : IBufferElementData
 {
+    // Current pheromone intensity
     public float Intensity;
-
 }
 
 public struct FoodMarker : IComponentData

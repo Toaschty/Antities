@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -80,6 +81,8 @@ public partial struct DepositJob : IJobEntity
             RefRW<Ant> ant = AntLookup.GetRefRW(hit.Entity);
 
             ant.ValueRW.LeftColony = Time;
+
+            ECB.RemoveComponent<SkipMarkerSpawning>(0, hit.Entity);
 
             if (ant.ValueRO.Food != Entity.Null)
             {

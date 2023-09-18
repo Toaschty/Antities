@@ -2,6 +2,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class AntAuthoring : MonoBehaviour
 {
@@ -11,7 +12,6 @@ public class AntAuthoring : MonoBehaviour
     public float WanderStrength = 1f;
     public float SensorStrength = 0.9f;
     public float RandomDirectionAngle = 90f;
-    public float GroundLevel = 0f;
 
     [Header("Random Movement Settings")]
     public float MaxRandomSteerDuration = 1f;
@@ -47,12 +47,11 @@ public class AntAuthoring : MonoBehaviour
                 RandomSteerForce = float3.zero,
                 RandomSteerStength = authoring.RandomSteerStrength,
                 IsGrounded = false,
+                HighestQualityFound = 0f,
                 GroundNormal = new float3(0.0f, 1.0f, 0.0f),
                 MaxRandomSteerDuration = authoring.MaxRandomSteerDuration,
                 NextRandomSteerTime = Time.time,
                 LastPheromonePosition = float3.zero,
-                LeftColony = Time.time,
-                LeftFood = 0f,
                 TurnAroundStrength = authoring.TurnAroundStrength,
                 TurnAroundDirection = float3.zero,
                 Velocity = float3.zero,
@@ -68,12 +67,11 @@ public class AntAuthoring : MonoBehaviour
             SetComponentEnabled<TargetingFood>(entity, true);
             AddComponent<TargetingColony>(entity);
             SetComponentEnabled<TargetingColony>(entity, false);
+            AddBuffer<WayPoint>(entity);
+            AddComponent<BuildPath>(entity);
+            SetComponentEnabled<BuildPath>(entity, false);
+            AddComponent<SpawnPendingPheromones>(entity);
         }
-    }
-
-    private void OnDrawGizmos()
-    {
-        Gizmos.DrawCube(new float3(0.0f, GroundLevel, 0.0f), new float3(1.0f, 0.01f, 1.0f));
     }
 }
 
@@ -102,15 +100,11 @@ public struct Ant : IComponentData
     public float3 RandomSteerForce;
 
     public bool IsGrounded;
-    public bool IsSliding;
     public float3 GroundNormal;
 
-    // Pheromone
+    // Path
     public float3 LastPheromonePosition;
-
-    // Timings
-    public double LeftColony;
-    public double LeftFood;
+    public float HighestQualityFound;
 
     // Turn around
     public float TurnAroundStrength;
@@ -123,6 +117,7 @@ public struct Ant : IComponentData
     public float ViewAngle;
     public float ViewRadius;
 
+    // Sensors
     public Entity LeftSensor;
     public Entity CenterSensor;
     public Entity RightSensor;
@@ -132,8 +127,19 @@ public struct Ant : IComponentData
     public Entity Food;
 }
 
-public struct SkipMarkerSpawning : IComponentData
-{ 
+[InternalBufferCapacity(512)]
+public struct WayPoint : IBufferElementData
+{
+    public float3 Position;
+    public Entity PendingPheromone;
+}
+
+public struct BuildPath : IComponentData, IEnableableComponent
+{
+}
+
+public struct SpawnPendingPheromones : IComponentData, IEnableableComponent
+{
 }
 
 public struct TargetingFood : IComponentData, IEnableableComponent

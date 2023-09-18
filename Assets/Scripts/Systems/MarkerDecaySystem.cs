@@ -9,39 +9,43 @@ using Unity.VisualScripting;
 
 public partial struct MarkerDecaySystem : ISystem
 {
-    private BufferLookup<MarkerData> MarkerLookup;
+    private ComponentLookup<Pheromone> PheromoneLookup;
 
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        state.RequireForUpdate<Marker>();
+        state.RequireForUpdate<Pheromone>();
 
-        MarkerLookup = state.GetBufferLookup<MarkerData>();
+        PheromoneLookup = state.GetComponentLookup<Pheromone>();
     }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        var deltaTime = SystemAPI.Time.DeltaTime;
-        var markerConfig = SystemAPI.GetSingleton<MarkerConfig>();
+        var PheromoneConfig = SystemAPI.GetSingleton<PheromoneConfig>();
+        var ECB = new EntityCommandBuffer(Allocator.TempJob);
 
-        var ecb = new EntityCommandBuffer(Allocator.TempJob);
-
-        MarkerLookup.Update(ref state);
+        PheromoneLookup.Update(ref state);
 
         var decayJob = new DecayJob
         {
-            DeltaTime = deltaTime,
-            MarkerConfig = markerConfig,
-            ECB = ecb.AsParallelWriter(),
-            MarkerLookup = MarkerLookup,
+            Time = (float)SystemAPI.Time.ElapsedTime,
+            PheromoneConfig = PheromoneConfig,
+            ECB = ECB.AsParallelWriter(),
         };
 
         JobHandle decayJobHandle = decayJob.ScheduleParallel(state.Dependency);
         decayJobHandle.Complete();
+        
+        if (!ECB.IsEmpty)
+        {
+            // Reset path qualities
+            foreach (var ant in SystemAPI.Query<RefRW<Ant>>())
+                ant.ValueRW.HighestQualityFound = 0f;
+        }
 
-        ecb.Playback(state.EntityManager);
-        ecb.Dispose();
+        ECB.Playback(state.EntityManager);
+        ECB.Dispose();
 
         state.Dependency = decayJobHandle;
     }
@@ -50,38 +54,23 @@ public partial struct MarkerDecaySystem : ISystem
 [BurstCompile]
 public partial struct DecayJob : IJobEntity
 {
-    [ReadOnly] public float DeltaTime;
-    [ReadOnly] public MarkerConfig MarkerConfig;
+    [ReadOnly] public float Time;
+    [ReadOnly] public PheromoneConfig PheromoneConfig;
 
-    [NativeDisableParallelForRestriction]
-    public BufferLookup<MarkerData> MarkerLookup;
     public EntityCommandBuffer.ParallelWriter ECB;
 
     [BurstCompile]
-    public void Execute(Entity entity, Marker marker, ref LocalTransform transform)
+    public void Execute(Entity entity, ref Pheromone pheromone, ref LocalTransform transform)
     {
-        DynamicBuffer<MarkerData> data = MarkerLookup[entity];
+        if (pheromone.LifeTime < Time && pheromone.Quality == 0.0001f)
+            pheromone.Quality = 0.0001f;
 
-        float completeIntensity = 0f;
-
-        for (int i = 0; i < data.Length; i++)
+        if (pheromone.LifeTime + 30 < Time)
         {
-            data.ElementAt(i).Intensity -= DeltaTime;
-
-            completeIntensity += data.ElementAt(i).Intensity;
-
-            if (data.ElementAt(i).Intensity < 0)
-            {
-                data.RemoveAt(i);
-
-                if (data.IsEmpty)
-                {
-                    ECB.DestroyEntity(0, entity);
-                    return;
-                }
-            }
+            ECB.DestroyEntity(0, entity);
+            return;
         }
-        
-        transform.Scale = (float)((completeIntensity / data.Length) / MarkerConfig.PheromoneMaxTime) * MarkerConfig.Scale;
+
+        transform.Scale = (float)((pheromone.LifeTime - Time) / PheromoneConfig.PheromoneMaxTime) * PheromoneConfig.Scale;
     }
 }

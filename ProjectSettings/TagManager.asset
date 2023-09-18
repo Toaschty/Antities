@@ -17,9 +17,9 @@ TagManager:
   - Ant
   - FoodPheromone
   - ColonyPheromone
-  - InvalidPheromone
+  - PendingPheromone
   - Sensor
-  - 
+  - PathPheromone
   - 
   - 
   - 

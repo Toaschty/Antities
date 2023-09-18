@@ -9,7 +9,7 @@ using UnityEngine;
 
 public partial struct FoodSourceSystem : ISystem
 {
-    ComponentLookup<Ant> antLookup;
+    private ComponentLookup<Ant> AntLookup;
 
     [BurstCompile]
     public void OnCreate(ref SystemState state)
@@ -17,30 +17,32 @@ public partial struct FoodSourceSystem : ISystem
         state.RequireForUpdate<Ant>();
         state.RequireForUpdate<Food>();
 
-        antLookup = state.GetComponentLookup<Ant>();
+        AntLookup = state.GetComponentLookup<Ant>();
     }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        var ecb = new EntityCommandBuffer(Allocator.TempJob);
-        var collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
+        var ECB = new EntityCommandBuffer(Allocator.TempJob);
+        var CollisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
+        var PheromoneConfig = SystemAPI.GetSingleton<PheromoneConfig>();
 
-        antLookup.Update(ref state);
+        AntLookup.Update(ref state);
 
         var sourceJob = new SourceJob
         {
-            AntLookup = antLookup,
-            CollisionWorld = collisionWorld,
-            ECB = ecb.AsParallelWriter(),
+            AntLookup = AntLookup,
+            CollisionWorld = CollisionWorld,
+            ECB = ECB.AsParallelWriter(),
             Time = SystemAPI.Time.ElapsedTime,
+            PheromoneConfig = PheromoneConfig,
         };
 
         JobHandle sourceHandle = sourceJob.ScheduleParallel(state.Dependency);
         sourceHandle.Complete();
 
-        ecb.Playback(state.EntityManager);
-        ecb.Dispose();
+        ECB.Playback(state.EntityManager);
+        ECB.Dispose();
 
         state.Dependency = sourceHandle;
     }
@@ -51,6 +53,7 @@ public partial struct SourceJob : IJobEntity
 {
     [ReadOnly] public CollisionWorld CollisionWorld;
     [ReadOnly] public double Time;
+    [ReadOnly] public PheromoneConfig PheromoneConfig;
 
     [NativeDisableParallelForRestriction] public ComponentLookup<Ant> AntLookup;
     public EntityCommandBuffer.ParallelWriter ECB;
@@ -71,9 +74,7 @@ public partial struct SourceJob : IJobEntity
             }
         };
 
-        bool result = CollisionWorld.CalculateDistance(pointDistanceInput, ref hits);
-
-        if (!result)
+        if (!CollisionWorld.CalculateDistance(pointDistanceInput, ref hits))
             return;
 
         bool sourceDestroyed = false;
@@ -93,6 +94,9 @@ public partial struct SourceJob : IJobEntity
 
             if (food.Amount > 0)
             {
+                // Start path building
+                ECB.SetComponentEnabled<BuildPath>(0, hit.Entity, true);
+
                 // Instantiate small food
                 Entity carryFood = ECB.Instantiate(0, food.CarryModel);
 
@@ -110,24 +114,9 @@ public partial struct SourceJob : IJobEntity
                     Scale = 0.2f
                 });
 
-                // Switch target to colony
-                ECB.SetComponentEnabled<TargetingFood>(0, hit.Entity, false);
-                ECB.SetComponentEnabled<TargetingColony>(0, hit.Entity, true);
-
-                // Switch state of ant
-                ant.ValueRW.State = AntState.GoingHome;
-                ant.ValueRW.Velocity = -ant.ValueRO.Velocity;
-                ant.ValueRW.DesiredDirection = ant.ValueRO.Velocity;
-                ant.ValueRW.RandomSteerForce = ant.ValueRO.Velocity;
-
-                ant.ValueRW.TurnAroundDirection = -ant.ValueRO.DesiredDirection;
-                ant.ValueRW.LeftFood = Time;
-
-                ECB.RemoveComponent<SkipMarkerSpawning>(0, hit.Entity);
-
                 ant.ValueRW.Food = carryFood;
-                ECB.SetComponent<Ant>(0, hit.Entity, ant.ValueRO);
-
+                
+                // Handle food amount
                 food.Amount--;
 
                 if (food.Amount <= 0)
@@ -136,9 +125,22 @@ public partial struct SourceJob : IJobEntity
                     ECB.DestroyEntity(1, entity);
                     sourceDestroyed = true;
                 }
+
+                // Flip movement direction
+                ant.ValueRW.State = AntState.GoingHome;
+                ant.ValueRW.Velocity = -ant.ValueRO.Velocity;
+                ant.ValueRW.DesiredDirection = ant.ValueRO.Velocity;
+                ant.ValueRW.RandomSteerForce = ant.ValueRO.Velocity;
+
+                // Switch target to colony
+                ECB.SetComponentEnabled<TargetingFood>(0, hit.Entity, false);
+                ECB.SetComponentEnabled<TargetingColony>(0, hit.Entity, true);
+                
+                // Reset path settings
+                ECB.SetComponentEnabled<SpawnPendingPheromones>(0, hit.Entity, true);
+
+                ECB.SetComponent(0, hit.Entity, ant.ValueRO);
             }
         }
-
-        hits.Dispose();
     }
 }

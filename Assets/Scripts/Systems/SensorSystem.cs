@@ -2,78 +2,58 @@ using System.Diagnostics;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Jobs;
 using Unity.Physics;
 using Unity.Transforms;
-using Unity.VisualScripting;
 
 public partial struct SensorSystem : ISystem
 {
-    // Lookups
-    public ComponentLookup<Ant> AntLookup;
-    // public ComponentLookup<Marker> MarkerLookup;
-    private BufferLookup<MarkerData> MarkerDataLookup;
+    private ComponentLookup<Ant> AntLookup;
+    private ComponentLookup<Pheromone> PheromoneLookup;
 
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<Ant>();
         state.RequireForUpdate<Sensor>();
-        // state.RequireForUpdate<Marker>();
 
         // Create lookups
         AntLookup = state.GetComponentLookup<Ant>();
-        // MarkerLookup = state.GetComponentLookup<Marker>();
-        MarkerDataLookup = state.GetBufferLookup<MarkerData>();
+        PheromoneLookup = state.GetComponentLookup<Pheromone>();
     }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        var collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
-        var ECB = new EntityCommandBuffer(Allocator.TempJob);
+        CollisionWorld CollisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
 
         AntLookup.Update(ref state);
-        MarkerDataLookup.Update(ref state);
-        // MarkerLookup.Update(ref state);
+        PheromoneLookup.Update(ref state);
 
         var sensorJob = new PhysicsSensorJob
         {
             AntsLookup = AntLookup,
-            // MarkerLookup = MarkerLookup,
-            MarkerDataLookup = MarkerDataLookup,
-            CollisionWorld = collisionWorld,
-            ECB = ECB.AsParallelWriter(),
+            PheromoneLookup = PheromoneLookup,
+            CollisionWorld = CollisionWorld,
         };
 
-        JobHandle sensorHandle = sensorJob.ScheduleParallel(state.Dependency);
-        sensorHandle.Complete();
-
-        ECB.Playback(state.EntityManager);
-        ECB.Dispose();
-
-        state.Dependency = sensorHandle;
+        state.Dependency = sensorJob.ScheduleParallel(state.Dependency);
     }
 }
 
 [BurstCompile]
 public partial struct PhysicsSensorJob : IJobEntity
 {
-    [ReadOnly] public ComponentLookup<Ant> AntsLookup;
-    // [ReadOnly] public ComponentLookup<Marker> MarkerLookup;
+    [ReadOnly] public ComponentLookup<Pheromone> PheromoneLookup;
     [ReadOnly] public CollisionWorld CollisionWorld;
 
-    [NativeDisableParallelForRestriction]
-    public BufferLookup<MarkerData> MarkerDataLookup;
-    public EntityCommandBuffer.ParallelWriter ECB;
+    [NativeDisableParallelForRestriction] public ComponentLookup<Ant> AntsLookup;
 
     [BurstCompile]
     public void Execute(ref Sensor sensor, in LocalToWorld transform)
     {
-        // Get current ant state > Generate search mask
-        AntState antState = AntsLookup.GetRefRO(sensor.Ant).ValueRO.State;
-        uint mask = antState == AntState.SearchingFood ? 1024u : 2048u; // Food Pheromone : Colony Pheromone
+        RefRW<Ant> ant = AntsLookup.GetRefRW(sensor.Ant);
 
+        // Get current ant state > Generate search mask
         NativeList<DistanceHit> hits = new NativeList<DistanceHit>(Allocator.Temp);
         PointDistanceInput pointDistanceInput = new PointDistanceInput
         {
@@ -82,7 +62,7 @@ public partial struct PhysicsSensorJob : IJobEntity
             Filter = new CollisionFilter
             {
                 BelongsTo = 8192u, // Sensor
-                CollidesWith = mask,
+                CollidesWith = 16384u, //mask,
                 GroupIndex = 0
             }
         };
@@ -90,24 +70,20 @@ public partial struct PhysicsSensorJob : IJobEntity
         CollisionWorld.CalculateDistance(pointDistanceInput, ref hits);
 
         // Calculate intensity of sensor
-        float sIntensity = 0f;
-        float mCount = 0f;
+        float maxQuality = 0f;
+
+        // Find highest quality path
         foreach (var hit in hits)
         {
-            DynamicBuffer<MarkerData> data = MarkerDataLookup[hit.Entity];
-
-            for (int i = 0; i < data.Length; i++)
-            {
-                sIntensity += data.ElementAt(i).Intensity;
-                mCount++;
-            }
+            if (PheromoneLookup.GetRefRO(hit.Entity).ValueRO.Quality > maxQuality)
+                maxQuality = PheromoneLookup.GetRefRO(hit.Entity).ValueRO.Quality;
         }
 
-        if (mCount > 0)
-            sensor.Intensity = sIntensity; // / mCount;
-        else
-            sensor.Intensity = 0f;
+        sensor.Intensity = maxQuality;
 
-        hits.Dispose();
+        if (ant.ValueRO.HighestQualityFound < maxQuality)
+        {
+            ant.ValueRW.HighestQualityFound = maxQuality;
+        }
     }
 }

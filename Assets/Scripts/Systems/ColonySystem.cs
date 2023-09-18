@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -9,7 +8,7 @@ using Unity.Transforms;
 
 public partial struct ColonySystem : ISystem
 {
-    ComponentLookup<Ant> antLookup;
+    private ComponentLookup<Ant> antLookup;
 
     [BurstCompile]
     public void OnCreate(ref SystemState state)
@@ -23,24 +22,24 @@ public partial struct ColonySystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        var ecb = new EntityCommandBuffer(Allocator.TempJob);
-        var collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
+        var ECB = new EntityCommandBuffer(Allocator.TempJob);
+        var CollisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
 
         antLookup.Update(ref state);
 
         var depositJob = new DepositJob
         {
-            CollisionWorld = collisionWorld,
+            CollisionWorld = CollisionWorld,
             Time = SystemAPI.Time.ElapsedTime,
             AntLookup = antLookup,
-            ECB = ecb.AsParallelWriter(),
+            ECB = ECB.AsParallelWriter(),
         };
 
         JobHandle depositHandle = depositJob.ScheduleParallel(state.Dependency);
         depositHandle.Complete();
 
-        ecb.Playback(state.EntityManager);
-        ecb.Dispose();
+        ECB.Playback(state.EntityManager);
+        ECB.Dispose();
 
         state.Dependency = depositHandle;
     }
@@ -53,6 +52,7 @@ public partial struct DepositJob : IJobEntity
     [ReadOnly] public double Time;
 
     [NativeDisableParallelForRestriction] public ComponentLookup<Ant> AntLookup;
+
     public EntityCommandBuffer.ParallelWriter ECB;
 
     [BurstCompile]
@@ -71,21 +71,23 @@ public partial struct DepositJob : IJobEntity
             }
         };
 
-        bool result = CollisionWorld.CalculateDistance(pointDistanceInput, ref hits);
-
-        if (!result)
+        // Return if hit nothing
+        if (!CollisionWorld.CalculateDistance(pointDistanceInput, ref hits))
             return;
 
         foreach (var hit in hits)
         {
             RefRW<Ant> ant = AntLookup.GetRefRW(hit.Entity);
 
-            ant.ValueRW.LeftColony = Time;
+            // Reset pending pheromone spawning
+            ECB.SetComponentEnabled<SpawnPendingPheromones>(0, hit.Entity, true);
 
-            ECB.RemoveComponent<SkipMarkerSpawning>(0, hit.Entity);
-
+            // Check if ant is carrying food
             if (ant.ValueRO.Food != Entity.Null)
             {
+                // Start building path
+                ECB.SetComponentEnabled<BuildPath>(0, hit.Entity, true);
+
                 // Destroy food
                 ECB.DestroyEntity(0, ant.ValueRO.Food);
 
@@ -105,7 +107,5 @@ public partial struct DepositJob : IJobEntity
                 ant.ValueRW.RandomSteerForce = newDir;
             }
         }
-
-        hits.Dispose();
     }
 }

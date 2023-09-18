@@ -9,32 +9,13 @@ public class MarkerAuthoring : MonoBehaviour
         public override void Bake(MarkerAuthoring authoring)
         {
             var entity = GetEntity(TransformUsageFlags.Renderable);
-            AddComponent(entity, new Marker());
+            AddComponent(entity, new Pheromone());
         }
     }
 }
 
-public struct Marker : IComponentData
+public struct Pheromone : IComponentData
 {
-
+    public float Quality;
+    public float LifeTime;
 }
-
-[InternalBufferCapacity(2048)]
-public struct MarkerData : IBufferElementData
-{
-    // Current pheromone intensity
-    public float Intensity;
-}
-
-public struct FoodMarker : IComponentData
-{
-    // Component needs value for "IsValid" to work
-    public bool Value;
-}
-
-public struct ColonyMarker : IComponentData
-{
-    // Component needs value for "IsValid" to work
-    public bool Value;
-}
-

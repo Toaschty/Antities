@@ -8,7 +8,7 @@ using Unity.Transforms;
 
 public partial struct TargetingSystem : ISystem
 {
-    public ComponentLookup<Food> FoodLookup;
+    private ComponentLookup<Food> FoodLookup;
 
     [BurstCompile]
     public void OnCreate(ref SystemState state)
@@ -21,14 +21,14 @@ public partial struct TargetingSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        var collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
+        var CollisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
 
         FoodLookup.Update(ref state);
 
         var targetingJob = new TargetingJob
         {
             FoodLookup = FoodLookup,
-            CollisionWorld = collisionWorld,
+            CollisionWorld = CollisionWorld,
         };
 
         JobHandle targetingHandle = targetingJob.ScheduleParallel(state.Dependency);
@@ -118,7 +118,5 @@ public partial struct TargetingJob : IJobEntity
 
         if (distance != float.MaxValue)
             ant.Target = target.Entity;
-
-        hits.Dispose();
     }
 }

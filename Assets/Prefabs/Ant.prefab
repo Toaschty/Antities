@@ -996,12 +996,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MaxSpeed: 3
   SteerStrength: 4
-  WanderStrength: 0.1
-  SensorStrength: 1
+  WanderStrength: 0.2
+  SensorStrength: 1.3
   RandomDirectionAngle: 180
-  GroundLevel: 0
   MaxRandomSteerDuration: 2
-  RandomSteerStrength: 0.7
+  RandomSteerStrength: 0.9
   TurnAroundStrength: 1
   ViewAngle: 120
   ViewRadius: 4

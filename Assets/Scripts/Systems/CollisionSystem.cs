@@ -40,7 +40,7 @@ public partial struct CollisionJob : IJobEntity
     [ReadOnly] public CollisionWorld CollisionWorld;
 
     [BurstCompile]
-    public void Execute(in LocalTransform transform, ref Ant ant)
+    public void Execute(ref LocalTransform transform, ref Ant ant)
     {
         // Ground Check
         RaycastInput groundCheckInput = new RaycastInput
@@ -61,7 +61,7 @@ public partial struct CollisionJob : IJobEntity
         float slopeAngle = math.degrees(math.acos(math.dot(new float3(0.0f, 1.0f, 0.0f), groundHit.SurfaceNormal)));
 
         // Flip velocity
-        if (slopeAngle > 60 && ant.Velocity.y > 0)
+        if (slopeAngle > ant.MaxSlopeAngle && ant.Velocity.y > 0)
         {
             ant.DesiredDirection = -ant.Velocity;
             ant.RandomSteerForce = -ant.Velocity;
@@ -71,38 +71,43 @@ public partial struct CollisionJob : IJobEntity
         {
             ant.IsGrounded = true;
             ant.GroundNormal = groundHit.SurfaceNormal;
+
+            // Fix position
+            if (groundHit.Fraction <= 0.48)
+                transform.Position = groundHit.Position;
         }
         else
         {
             ant.IsGrounded = false;
         }
 
-        return;
-
         // Collision with walls
-        //RaycastInput input = new RaycastInput()
-        //{
-        //    Start = transform.Position,
-        //    End = transform.Position + transform.Forward() * 0.5f,
-        //    Filter = new CollisionFilter
-        //    {
-        //        BelongsTo = 512u, // Ant
-        //        CollidesWith = 128u, // Wall
-        //        GroupIndex = 0
-        //    }
-        //};
+        RaycastInput wallCheckInput = new RaycastInput()
+        {
+            Start = transform.Position + new float3(0.0f, 0.2f, 0.0f),
+            End = transform.Position + new float3(0.0f, 0.2f, 0.0f) + transform.Forward() * 0.5f,
+            Filter = new CollisionFilter
+            {
+                BelongsTo = 512u, // Ant
+                CollidesWith = 128u, // Wall
+                GroupIndex = 0
+            }
+        };
 
-        //RaycastHit hit = new RaycastHit();
-        //bool haveHit = CollisionWorld.CastRay(input, out hit);
+        // Invert direction on hit with wall
+        RaycastHit wallHit = new RaycastHit();
+        if (ant.IsGrounded && CollisionWorld.CastRay(wallCheckInput, out wallHit))
+        {
+            float wallAngle = math.degrees(math.acos(math.dot(new float3(0.0f, 1.0f, 0.0f), wallHit.SurfaceNormal)));
 
-        //// Invert direction on hit with wall
-        //if (haveHit)
-        //{
-        //    float3 newDirection = math.reflect(ant.Velocity, hit.SurfaceNormal);
+            if (wallAngle < ant.MaxSlopeAngle)
+                return;
 
-        //    ant.Velocity = newDirection;
-        //    ant.RandomSteerForce = newDirection;
-        //    ant.DesiredDirection = newDirection;
-        //}
+            float3 newDirection = math.reflect(ant.Velocity, wallHit.SurfaceNormal);
+
+            ant.Velocity = newDirection;
+            ant.RandomSteerForce = newDirection;
+            ant.DesiredDirection = newDirection;
+        }
     }
 }

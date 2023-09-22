@@ -12,6 +12,7 @@ public class AntAuthoring : MonoBehaviour
     public float WanderStrength = 1f;
     public float SensorStrength = 0.9f;
     public float RandomDirectionAngle = 90f;
+    public float MaxSlopeAngle = 65f;
 
     [Header("Random Movement Settings")]
     public float MaxRandomSteerDuration = 1f;
@@ -48,6 +49,7 @@ public class AntAuthoring : MonoBehaviour
                 RandomSteerStength = authoring.RandomSteerStrength,
                 IsGrounded = false,
                 HighestQualityFound = 0f,
+                MaxSlopeAngle = authoring.MaxSlopeAngle,
                 GroundNormal = new float3(0.0f, 1.0f, 0.0f),
                 MaxRandomSteerDuration = authoring.MaxRandomSteerDuration,
                 NextRandomSteerTime = Time.time,
@@ -98,6 +100,7 @@ public struct Ant : IComponentData
     public float RandomSteerStength;
     public float NextRandomSteerTime;
     public float3 RandomSteerForce;
+    public float MaxSlopeAngle;
 
     public bool IsGrounded;
     public float3 GroundNormal;

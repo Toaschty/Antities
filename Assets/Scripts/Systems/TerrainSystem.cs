@@ -6,6 +6,7 @@ using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Rendering;
 using Unity.Transforms;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -282,6 +283,9 @@ public partial struct TerrainSystem : ISystem, ISystemStartStop
         {
             meshes[i].RecalculateBounds();
             meshes[i].RecalculateNormals();
+
+            //AssetDatabase.CreateAsset(meshes[i], "Assets/Terrain/Chunk-" + i + ".asset");
+            //AssetDatabase.SaveAssets();
 
             // Define mesh rendering components
             RenderMeshDescription renderMeshDescription = new RenderMeshDescription(ShadowCastingMode.On, true);

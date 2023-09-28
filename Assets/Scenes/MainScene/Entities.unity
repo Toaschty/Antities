@@ -212,15 +212,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d43f26fe900a1349b283830d6d6f960, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Width: 128
+  Width: 256
   Height: 64
-  Depth: 128
-  ChunkWidth: 8
-  ChunkHeight: 8
-  ChunkDepth: 8
+  Depth: 256
+  ChunkWidth: 128
+  ChunkHeight: 64
+  ChunkDepth: 128
   NoiseScale: 3.4
   Threshold: 0.4
-  NoiseDropOffHeight: 15
+  NoiseDropOffHeight: 14
   NoiseDropOffDepth: 10
   EmptyChunk: {fileID: 1756200429879174602, guid: 1ffe2508dc7a43046a2cab10c05e06ed,
     type: 3}

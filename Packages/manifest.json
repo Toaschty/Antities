@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.unity.2d.sprite": "1.0.0",
     "com.unity.collab-proxy": "2.0.5",
     "com.unity.entities": "1.0.14",
     "com.unity.entities.graphics": "1.0.14",

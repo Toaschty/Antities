@@ -49,7 +49,11 @@ public class TerrainAuthoring : MonoBehaviour
                 NoiseDropOffHeight = authoring.NoiseDropOffHeight,
                 EmptyChunk = GetEntity(authoring.EmptyChunk, TransformUsageFlags.None),
                 ChunkBorder = GetEntity(authoring.ChunkBorder, TransformUsageFlags.None),
-                Brush = GetEntity(authoring.Brush, TransformUsageFlags.Dynamic),
+            });
+            AddComponent(entity, new BrushData
+            {
+                Prefab = GetEntity(authoring.Brush, TransformUsageFlags.Dynamic),
+                BrushSize = 1
             });
         }
     }
@@ -75,7 +79,6 @@ public struct Terrain : IComponentData
 
     public Entity EmptyChunk;
     public Entity ChunkBorder;
-    public Entity Brush;
 }
 
 public struct Chunk : IComponentData
@@ -85,4 +88,11 @@ public struct Chunk : IComponentData
     public float Width;
     public float Height;
     public float Depth;
+}
+
+public struct BrushData : IComponentData
+{
+    public Entity Prefab;
+    public Entity Instance;
+    public float BrushSize;
 }

@@ -6,7 +6,6 @@ using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Rendering;
 using Unity.Transforms;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -14,9 +13,6 @@ public partial struct TerrainSystem : ISystem, ISystemStartStop
 {
     private NativeArray<Entity> ChunkEntities;
     private NativeArray<float> TerrainData;
-
-    private Entity BrushEntity;
-    private float BrushSize;
 
     private ComponentLookup<Chunk> ChunkLookup;
 
@@ -26,8 +22,6 @@ public partial struct TerrainSystem : ISystem, ISystemStartStop
         state.RequireForUpdate<Terrain>();
 
         ChunkLookup = state.GetComponentLookup<Chunk>();
-
-        BrushSize = 2f;
     }
 
     public void OnStartRunning(ref SystemState state)
@@ -41,6 +35,7 @@ public partial struct TerrainSystem : ISystem, ISystemStartStop
 
         // Terrain Editing
         CameraData data = SystemAPI.GetSingleton<CameraData>();
+        BrushData brushData = SystemAPI.GetSingleton<BrushData>();
         CollisionWorld CollisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
         Terrain Terrain = SystemAPI.GetSingleton<Terrain>();
 
@@ -60,31 +55,31 @@ public partial struct TerrainSystem : ISystem, ISystemStartStop
         Unity.Physics.RaycastHit hit = new Unity.Physics.RaycastHit();
         if (CollisionWorld.CastRay(mouseRayInput, out hit))
         {
-            if (!state.EntityManager.IsEnabled(BrushEntity))
-                state.EntityManager.SetEnabled(BrushEntity, true);
+            if (!state.EntityManager.IsEnabled(brushData.Instance))
+                state.EntityManager.SetEnabled(brushData.Instance, true);
 
-            state.EntityManager.SetComponentData(BrushEntity, new LocalTransform
+            state.EntityManager.SetComponentData(brushData.Instance, new LocalTransform
             {
                 Position = hit.Position,
                 Rotation = quaternion.identity,
-                Scale = BrushSize,
+                Scale = brushData.BrushSize,
             });
         }
         else
         {
-            if (state.EntityManager.IsEnabled(BrushEntity))
-                state.EntityManager.SetEnabled(BrushEntity, false);
+            if (state.EntityManager.IsEnabled(brushData.Instance))
+                state.EntityManager.SetEnabled(brushData.Instance, false);
         }
 
         // Handle keyboard input
         if (Input.GetKeyDown(KeyCode.R))
-            BrushSize += 1f;
+            brushData.BrushSize += 1f;
         if (Input.GetKeyDown(KeyCode.F))
-            BrushSize -= 1f;
-        BrushSize = math.clamp(BrushSize, 1.0f, 20.0f);
+            brushData.BrushSize -= 1f;
+        brushData.BrushSize = math.clamp(brushData.BrushSize, 1.0f, 20.0f);
 
         // Handle terrain editing
-        if (hit.Entity != Entity.Null && (Input.GetMouseButton(0) || Input.GetMouseButton(1)))
+        if (hit.Entity != Entity.Null && Input.GetMouseButton(0))
         {
             // Check mouse button
             bool leftClick = false;
@@ -97,7 +92,7 @@ public partial struct TerrainSystem : ISystem, ISystemStartStop
             PointDistanceInput chunkInput = new PointDistanceInput
             {
                 Position = hit.Position,
-                MaxDistance = BrushSize,
+                MaxDistance = brushData.BrushSize,
                 Filter = new CollisionFilter
                 {
                     BelongsTo = ~0u, // Everything
@@ -134,7 +129,7 @@ public partial struct TerrainSystem : ISystem, ISystemStartStop
                         {
                             float distance = math.distance(new float3(x, y, z), hit.Position);
 
-                            if (distance < BrushSize / 2)
+                            if (distance < brushData.BrushSize / 2)
                             {
                                 float value = GetValueAtPosition(TerrainData, new float3(x, y, z), Terrain.Width, Terrain.Depth);
 
@@ -168,6 +163,9 @@ public partial struct TerrainSystem : ISystem, ISystemStartStop
 
             chunkCoords.Dispose();
         }
+
+        // Save brush changes
+        SystemAPI.GetSingletonRW<BrushData>().ValueRW = brushData;
     }
 
     public void InitialSetup(ref SystemState state)
@@ -266,8 +264,9 @@ public partial struct TerrainSystem : ISystem, ISystemStartStop
         UpdateMeshes(ref state, MeshDataArray, ChunkEntities);
 
         // Spawn brush
-        BrushEntity = state.EntityManager.Instantiate(terrain.Brush);
-        state.EntityManager.SetEnabled(BrushEntity, false);
+        RefRW<BrushData> brushData = SystemAPI.GetSingletonRW<BrushData>();
+        brushData.ValueRW.Instance = state.EntityManager.Instantiate(brushData.ValueRO.Prefab);
+        state.EntityManager.SetEnabled(brushData.ValueRW.Instance, false);
     }
 
     public void UpdateMeshes(ref SystemState state, Mesh.MeshDataArray MeshDataArray, NativeArray<Entity> chunks)

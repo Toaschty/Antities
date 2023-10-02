@@ -1,6 +1,10 @@
+using JetBrains.Annotations;
+using System.Collections;
+using System.Linq;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Entities.UniversalDelegates;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Physics;
@@ -8,181 +12,72 @@ using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.Rendering;
+using static UnityEngine.Mesh;
 
-public partial struct TerrainSystem : ISystem, ISystemStartStop
+public partial struct TerrainSystem : ISystem
 {
     private NativeArray<Entity> ChunkEntities;
     private NativeArray<float> TerrainData;
-
     private ComponentLookup<Chunk> ChunkLookup;
 
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        state.RequireForUpdate<Terrain>();
-
         ChunkLookup = state.GetComponentLookup<Chunk>();
-    }
-
-    public void OnStartRunning(ref SystemState state)
-    {
-        InitialSetup(ref state);
     }
 
     public void OnUpdate(ref SystemState state)
     {
-        ChunkLookup.Update(ref state);
-
-        // Terrain Editing
-        CameraData data = SystemAPI.GetSingleton<CameraData>();
-        BrushData brushData = SystemAPI.GetSingleton<BrushData>();
-        CollisionWorld CollisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
-        Terrain Terrain = SystemAPI.GetSingleton<Terrain>();
-
-        // Handle mouse input
-        RaycastInput mouseRayInput = new RaycastInput
+        // Check if terrain should be generated from scratch
+        if (SystemAPI.HasSingleton<GenerateTerrain>())
         {
-            Start = data.Origin,
-            End = data.Origin + 500f * data.Direction,
-            Filter = new CollisionFilter
-            {
-                BelongsTo = ~0u,
-                CollidesWith = 128u,
-                GroupIndex = 0,
-            }
-        };
-
-        Unity.Physics.RaycastHit hit = new Unity.Physics.RaycastHit();
-        if (CollisionWorld.CastRay(mouseRayInput, out hit))
-        {
-            if (!state.EntityManager.IsEnabled(brushData.Instance))
-                state.EntityManager.SetEnabled(brushData.Instance, true);
-
-            state.EntityManager.SetComponentData(brushData.Instance, new LocalTransform
-            {
-                Position = hit.Position,
-                Rotation = quaternion.identity,
-                Scale = brushData.BrushSize,
-            });
-        }
-        else
-        {
-            if (state.EntityManager.IsEnabled(brushData.Instance))
-                state.EntityManager.SetEnabled(brushData.Instance, false);
+            StartTerrainGeneration(ref state);
+            return;
         }
 
-        // Handle keyboard input
-        if (Input.GetKeyDown(KeyCode.R))
-            brushData.BrushSize += 1f;
-        if (Input.GetKeyDown(KeyCode.F))
-            brushData.BrushSize -= 1f;
-        brushData.BrushSize = math.clamp(brushData.BrushSize, 1.0f, 20.0f);
+        // Skip editing step if no terrain exists
+        if (ChunkEntities.Length == 0 || !SystemAPI.HasSingleton<TerrainEditing>())
+            return;
 
-        // Handle terrain editing
-        if (hit.Entity != Entity.Null && Input.GetMouseButton(0))
-        {
-            // Check mouse button
-            bool leftClick = false;
+        NativeArray<Entity> modifiedChunks;
+        MeshDataArray meshDataArray = ModifyTerrain(ref state, out modifiedChunks);
 
-            if (Input.GetMouseButton(0))
-                leftClick = true;
+        if (meshDataArray.Length > 0)
+            UpdateMeshes(ref state, modifiedChunks, meshDataArray);
 
-            // Get Chunks which needs to be modified
-            NativeList<DistanceHit> chunkHits = new NativeList<DistanceHit>(Allocator.Temp);
-            PointDistanceInput chunkInput = new PointDistanceInput
-            {
-                Position = hit.Position,
-                MaxDistance = brushData.BrushSize,
-                Filter = new CollisionFilter
-                {
-                    BelongsTo = ~0u, // Everything
-                    CollidesWith = 32768u, // Chunk Borders
-                    GroupIndex = 0,
-                }
-            };
-
-            CollisionWorld.CalculateDistance(chunkInput, ref chunkHits);
-
-            NativeHashSet<Entity> distinctHits = new NativeHashSet<Entity>(chunkHits.Length, Allocator.Temp);
-            foreach (DistanceHit cHit in chunkHits)
-                if (state.EntityManager.HasComponent<Parent>(cHit.Entity))
-                    distinctHits.Add(state.EntityManager.GetComponentData<Parent>(cHit.Entity).Value);
-
-            NativeArray<Entity> chunkHitArray = distinctHits.ToNativeArray(Allocator.Temp);
-
-            NativeArray<float3> chunkCoords = new NativeArray<float3>(chunkHitArray.Length, Allocator.TempJob);
-
-            // Modify values in terrain data array
-            for (int i = 0; i < chunkHitArray.Length; i++)
-            {
-                ChunkLookup.Update(ref state);
-
-                Chunk chunkData = ChunkLookup[chunkHitArray[i]];
-
-                chunkCoords[i] = chunkData.BaseCoords;
-
-                for (int x = (int)chunkData.BaseCoords.x; x < (int)chunkData.BaseCoords.x + chunkData.Width; x++)
-                {
-                    for (int y = (int)chunkData.BaseCoords.y; y < (int)chunkData.BaseCoords.y + chunkData.Height; y++)
-                    {
-                        for (int z = (int)chunkData.BaseCoords.z; z < (int)chunkData.BaseCoords.z + chunkData.Depth; z++)
-                        {
-                            float distance = math.distance(new float3(x, y, z), hit.Position);
-
-                            if (distance < brushData.BrushSize / 2)
-                            {
-                                float value = GetValueAtPosition(TerrainData, new float3(x, y, z), Terrain.Width, Terrain.Depth);
-
-                                if (leftClick)
-                                    value += 0.2f * SystemAPI.Time.DeltaTime;
-                                else
-                                    value -= 0.2f * SystemAPI.Time.DeltaTime;
-
-                                SetValueAtPosition(TerrainData, new float3(x, y, z), Terrain.Width, Terrain.Depth, value);
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Generate new meshes
-            Mesh.MeshDataArray MeshDataArray = Mesh.AllocateWritableMeshData(chunkHitArray.Length);
-
-            var generateJob = new GenerateJob
-            {
-                TerrainData = TerrainData,
-                ChunkCoords = chunkCoords,
-                Terrain = Terrain,
-                MeshDataArray = MeshDataArray,
-            };
-
-            generateJob.Schedule(chunkHitArray.Length, math.max(1, chunkHitArray.Length / 8)).Complete();
-
-            // Update meshes
-            UpdateMeshes(ref state, MeshDataArray, chunkHitArray);
-
-            chunkCoords.Dispose();
-        }
-
-        // Save brush changes
-        SystemAPI.GetSingletonRW<BrushData>().ValueRW = brushData;
+        modifiedChunks.Dispose();
     }
 
-    public void InitialSetup(ref SystemState state)
+    public void StartTerrainGeneration(ref SystemState state)
+    {
+        // Delete old entities if existing
+        foreach (Entity chunk in ChunkEntities)
+            state.EntityManager.DestroyEntity(chunk);
+
+        // Start generation of new terrain with current settings
+        MeshDataArray meshDataArray = TerrainSetup(ref state);
+        GenerateTerrainMeshes(ref state, meshDataArray, ChunkEntities);
+
+        // Remove generate component
+        state.EntityManager.RemoveComponent<GenerateTerrain>(SystemAPI.GetSingletonEntity<GenerateTerrain>());
+    }
+
+    [BurstCompile]
+    public MeshDataArray TerrainSetup(ref SystemState state)
     {
         Terrain terrain = SystemAPI.GetSingleton<Terrain>();
 
-        // Setup data array
+        // Setup terrain data array
         int arrayLength = (terrain.Width + 1) * (terrain.Height + 1) * (terrain.Depth + 1);
         TerrainData = new NativeArray<float>(arrayLength, Allocator.Persistent);
 
+        // Generate noise for terrain landscape
         var noiseJob = new NoiseJob
         {
             TerrainSettings = terrain,
             TerrainData = TerrainData,
         };
-
-        noiseJob.Schedule(arrayLength, arrayLength).Complete();
+        noiseJob.Schedule(arrayLength, math.max(1, arrayLength / 8)).Complete();
 
         // Calculate chunk data
         int chunksX = terrain.Width / terrain.ChunkWidth;
@@ -196,8 +91,9 @@ public partial struct TerrainSystem : ISystem, ISystemStartStop
                 for (int cz = 0; cz < chunksZ; cz++)
                     ChunkCoords.Add(new float3(cx * terrain.ChunkWidth, cy * terrain.ChunkHeight, cz * terrain.ChunkDepth));
 
-        Mesh.MeshDataArray MeshDataArray = Mesh.AllocateWritableMeshData(ChunkCoords.Length);
+        MeshDataArray MeshDataArray = AllocateWritableMeshData(ChunkCoords.Length);
 
+        // Generate mesh data (vertices and triangles) for all chunks
         var generateJob = new GenerateJob
         {
             TerrainData = TerrainData,
@@ -205,19 +101,17 @@ public partial struct TerrainSystem : ISystem, ISystemStartStop
             Terrain = terrain,
             MeshDataArray = MeshDataArray,
         };
-
-        generateJob.Schedule(ChunkCoords.Length, ChunkCoords.Length / 8).Complete();
-
-        ChunkEntities = new NativeArray<Entity>(ChunkCoords.Length, Allocator.Persistent);
+        generateJob.Schedule(ChunkCoords.Length, math.max(1, ChunkCoords.Length / 8)).Complete();
 
         // Create chunk entities
+        ChunkEntities = new NativeArray<Entity>(ChunkCoords.Length, Allocator.Persistent);
+
         for (int i = 0; i < ChunkCoords.Length; i++)
         {
-            // Create entity
             Entity chunkEntity = state.EntityManager.Instantiate(terrain.EmptyChunk);
             state.EntityManager.SetComponentData(chunkEntity, new LocalTransform()
             {
-                Position = ChunkCoords[i], // - new float3(terrain.Width / 2, terrain.Height / 2, terrain.Depth / 2),
+                Position = ChunkCoords[i],
                 Rotation = quaternion.identity,
                 Scale = 1f
             });
@@ -260,22 +154,21 @@ public partial struct TerrainSystem : ISystem, ISystemStartStop
 
         ChunkCoords.Dispose();
 
-        // Update meshes
-        UpdateMeshes(ref state, MeshDataArray, ChunkEntities);
-
         // Spawn brush
         RefRW<BrushData> brushData = SystemAPI.GetSingletonRW<BrushData>();
         brushData.ValueRW.Instance = state.EntityManager.Instantiate(brushData.ValueRO.Prefab);
         state.EntityManager.SetEnabled(brushData.ValueRW.Instance, false);
+
+        return MeshDataArray;
     }
 
-    public void UpdateMeshes(ref SystemState state, Mesh.MeshDataArray MeshDataArray, NativeArray<Entity> chunks)
+    public void GenerateTerrainMeshes(ref SystemState state, MeshDataArray MeshDataArray, NativeArray<Entity> chunks)
     {
         Mesh[] meshes = new Mesh[chunks.Length];
         for (int i = 0; i < chunks.Length; i++)
             meshes[i] = new Mesh();
-    
-        Mesh.ApplyAndDisposeWritableMeshData(MeshDataArray, meshes);
+
+        ApplyAndDisposeWritableMeshData(MeshDataArray, meshes);
 
         // Apply new meshes
         for (int i = 0; i < chunks.Length; i++)
@@ -283,12 +176,9 @@ public partial struct TerrainSystem : ISystem, ISystemStartStop
             meshes[i].RecalculateBounds();
             meshes[i].RecalculateNormals();
 
-            //AssetDatabase.CreateAsset(meshes[i], "Assets/Terrain/Chunk-" + i + ".asset");
-            //AssetDatabase.SaveAssets();
-
             // Define mesh rendering components
             RenderMeshDescription renderMeshDescription = new RenderMeshDescription(ShadowCastingMode.On, true);
-            RenderMeshArray renderMeshArray = new RenderMeshArray(new[] { Resources.Load<UnityEngine.Material>("Terrain") }, new[] { meshes[i] });
+            RenderMeshArray renderMeshArray = new RenderMeshArray( new[] { Resources.Load<UnityEngine.Material>("Terrain") }, new[] { meshes[i] } );
             MaterialMeshInfo materialMeshInfo = MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0);
 
             // Add rendering components to entity
@@ -311,6 +201,191 @@ public partial struct TerrainSystem : ISystem, ISystemStartStop
     }
 
     [BurstCompile]
+    public MeshDataArray ModifyTerrain(ref SystemState state, out NativeArray<Entity> chunks)
+    {
+        ChunkLookup.Update(ref state);
+
+        // Terrain Editing
+        CameraData data = SystemAPI.GetSingleton<CameraData>();
+        BrushData brushData = SystemAPI.GetSingleton<BrushData>();
+        CollisionWorld CollisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
+        Terrain Terrain = SystemAPI.GetSingleton<Terrain>();
+
+        // Handle mouse input
+        RaycastInput mouseRayInput = new RaycastInput
+        {
+            Start = data.Origin,
+            End = data.Origin + 500f * data.Direction,
+            Filter = new CollisionFilter
+            {
+                BelongsTo = ~0u,
+                CollidesWith = 128u,
+                GroupIndex = 0,
+            }
+        };
+
+        // Handle state of brush
+        Unity.Physics.RaycastHit hit;
+        if (CollisionWorld.CastRay(mouseRayInput, out hit))
+        {
+            if (!state.EntityManager.IsEnabled(brushData.Instance))
+                state.EntityManager.SetEnabled(brushData.Instance, true);
+
+            state.EntityManager.SetComponentData(brushData.Instance, new LocalTransform
+            {
+                Position = hit.Position,
+                Rotation = quaternion.identity,
+                Scale = brushData.BrushSize,
+            });
+        }
+        else
+        {
+            if (state.EntityManager.IsEnabled(brushData.Instance))
+                state.EntityManager.SetEnabled(brushData.Instance, false);
+        }
+
+        // Handle keyboard input
+        if (Input.GetKeyDown(KeyCode.R))
+            brushData.BrushSize += 1f;
+        if (Input.GetKeyDown(KeyCode.F))
+            brushData.BrushSize -= 1f;
+        brushData.BrushSize = math.clamp(brushData.BrushSize, 1.0f, 20.0f);
+
+        // Save brush changes
+        SystemAPI.GetSingletonRW<BrushData>().ValueRW = brushData;
+
+        // Handle terrain editing
+        if (hit.Entity != Entity.Null && Input.GetMouseButton(0))
+        {
+            TerrainEditing editingData = SystemAPI.GetSingleton<TerrainEditing>();
+
+            // Get Chunks which needs to be modified
+            NativeList<DistanceHit> chunkHits = new NativeList<DistanceHit>(Allocator.Temp);
+            PointDistanceInput chunkInput = new PointDistanceInput
+            {
+                Position = hit.Position,
+                MaxDistance = brushData.BrushSize,
+                Filter = new CollisionFilter
+                {
+                    BelongsTo = ~0u, // Everything
+                    CollidesWith = 32768u, // Chunk Borders
+                    GroupIndex = 0,
+                }
+            };
+
+            CollisionWorld.CalculateDistance(chunkInput, ref chunkHits);
+
+            NativeHashSet<Entity> distinctHits = new NativeHashSet<Entity>(chunkHits.Length, Allocator.Temp);
+            foreach (DistanceHit cHit in chunkHits)
+                if (state.EntityManager.HasComponent<Parent>(cHit.Entity))
+                    distinctHits.Add(state.EntityManager.GetComponentData<Parent>(cHit.Entity).Value);
+
+            NativeArray<Entity> chunkHitArray = distinctHits.ToNativeArray(Allocator.TempJob);
+
+            NativeArray<float3> chunkCoords = new NativeArray<float3>(chunkHitArray.Length, Allocator.TempJob);
+
+            // Modify values in terrain data array
+            for (int i = 0; i < chunkHitArray.Length; i++)
+            {
+                ChunkLookup.Update(ref state);
+
+                Chunk chunkData = ChunkLookup[chunkHitArray[i]];
+
+                chunkCoords[i] = chunkData.BaseCoords;
+
+                for (int x = (int)chunkData.BaseCoords.x; x < (int)chunkData.BaseCoords.x + chunkData.Width; x++)
+                {
+                    for (int y = (int)chunkData.BaseCoords.y; y < (int)chunkData.BaseCoords.y + chunkData.Height; y++)
+                    {
+                        for (int z = (int)chunkData.BaseCoords.z; z < (int)chunkData.BaseCoords.z + chunkData.Depth; z++)
+                        {
+                            float distance = math.distance(new float3(x, y, z), hit.Position);
+
+                            if (distance < brushData.BrushSize / 2)
+                            {
+                                float value = GetValueAtPosition(TerrainData, new float3(x, y, z), Terrain.Width, Terrain.Depth);
+
+                                if (editingData.Mode == EditingModes.ADD)
+                                    value += 0.2f * SystemAPI.Time.DeltaTime;
+                                if (editingData.Mode == EditingModes.REMOVE)
+                                    value -= 0.2f * SystemAPI.Time.DeltaTime;
+
+                                SetValueAtPosition(TerrainData, new float3(x, y, z), Terrain.Width, Terrain.Depth, value);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Generate new meshes
+            MeshDataArray meshDataArray = AllocateWritableMeshData(chunkHitArray.Length);
+
+            var generateJob = new GenerateJob
+            {
+                TerrainData = TerrainData,
+                ChunkCoords = chunkCoords,
+                Terrain = Terrain,
+                MeshDataArray = meshDataArray,
+            };
+            generateJob.Schedule(chunkHitArray.Length, math.max(1, chunkHitArray.Length / 8)).Complete();
+
+            chunks = new NativeArray<Entity>(chunkHitArray, Allocator.TempJob);
+
+            chunkCoords.Dispose();
+            chunkHitArray.Dispose();
+
+            return meshDataArray;
+        }
+        else
+        {
+            chunks = new NativeArray<Entity>();
+        }
+
+        return new MeshDataArray();
+    }
+
+    public void UpdateMeshes(ref SystemState state, NativeArray<Entity> chunks, MeshDataArray meshDataArray)
+    {
+        NativeArray<BlobAssetReference<Unity.Physics.Collider>> BlobCollider = new NativeArray<BlobAssetReference<Unity.Physics.Collider>>(1, Allocator.TempJob);
+
+        for (int i = 0; i < chunks.Length; i++)
+        {
+            RenderMeshArray array = state.EntityManager.GetSharedComponentManaged<RenderMeshArray>(chunks[i]);
+
+            array.Meshes[0].Clear();
+
+            // Apply new mesh
+            array.Meshes[0].SetVertices(meshDataArray[i].GetVertexData<float3>().Reinterpret<Vector3>().ToArray());
+            array.Meshes[0].SetTriangles(meshDataArray[i].GetIndexData<int>().ToArray(), 0);
+
+            // Optimize mesh
+            array.Meshes[0].OptimizeIndexBuffers();
+            array.Meshes[0].OptimizeReorderVertexBuffer();
+            array.Meshes[0].RecalculateBounds();
+            array.Meshes[0].RecalculateNormals();
+
+            var Verts = new NativeArray<float3>(meshDataArray[i].GetVertexData<float3>(), Allocator.TempJob);
+            var Tris = new NativeArray<int>(meshDataArray[i].GetIndexData<int>(), Allocator.TempJob);
+
+            var applyColliders = new ApplyCollidersJob
+            {
+                MeshVerts = Verts,
+                MeshTris = Tris,
+                BlobCollider = BlobCollider,
+            };
+
+            applyColliders.Schedule().Complete();
+
+            Verts.Dispose();
+            Tris.Dispose();
+
+            state.EntityManager.SetComponentData(chunks[i], new PhysicsCollider { Value = BlobCollider[0] });
+        }
+
+        BlobCollider.Dispose();
+    }
+
+    [BurstCompile]
     private float GetValueAtPosition(NativeArray<float> TerrainData, float3 coordinate, int width, int depth)
     {
         return TerrainData[(int)(coordinate.x + coordinate.y * (width + 1) * (depth + 1) + coordinate.z * (width + 1))];
@@ -328,9 +403,27 @@ public partial struct TerrainSystem : ISystem, ISystemStartStop
         ChunkEntities.Dispose();
         TerrainData.Dispose();
     }
+}
 
-    public void OnStopRunning(ref SystemState state)
+[BurstCompile]
+partial struct ApplyCollidersJob : IJob
+{
+    public NativeArray<float3> MeshVerts;
+    public NativeArray<int> MeshTris;
+
+    public NativeArray<BlobAssetReference<Unity.Physics.Collider>> BlobCollider;
+
+    [BurstCompile]
+    public void Execute()
     {
+        // Calculate collider
+        NativeArray<int3> CTris = new NativeArray<int3>(MeshTris.Length / 3, Allocator.Temp);
+
+        int ii = 0;
+        for (int t = 0; t < MeshTris.Length; t += 3)
+            CTris[ii++] = new int3(MeshTris[t], MeshTris[t + 1], MeshTris[t + 2]);
+
+        BlobCollider[0] = Unity.Physics.MeshCollider.Create(MeshVerts, CTris);
     }
 }
 

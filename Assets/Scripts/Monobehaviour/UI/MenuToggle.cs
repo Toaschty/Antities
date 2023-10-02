@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class TerrainToggle : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+public class MenuToggle : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     public GameObject TerrainSettings;
-    public GameObject Tooltip;
+    public TMPro.TMP_Text Info;
+
+    public string InfoText;
 
     private bool currentState = false;
 
@@ -16,21 +18,27 @@ public class TerrainToggle : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
 
         TerrainSettings.SetActive(currentState);
 
-        // Deactive tooltip
-        Tooltip.SetActive(!currentState);
+        EventSystem.current.SetSelectedGameObject(null);
+    }
+
+    public void CloseMenu()
+    {
+        currentState = false;
+
+        TerrainSettings.SetActive(false);
+
+        Info.text = "";
 
         EventSystem.current.SetSelectedGameObject(null);
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (!currentState)
-            Tooltip.SetActive(true);
+        Info.text = InfoText;
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (!currentState)
-            Tooltip.SetActive(false);
+        Info.text = "";
     }
 }

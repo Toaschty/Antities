@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -95,4 +96,17 @@ public struct BrushData : IComponentData
     public Entity Prefab;
     public Entity Instance;
     public float BrushSize;
+}
+
+public struct GenerateTerrain : IComponentData { }
+
+public struct TerrainEditing : IComponentData
+{
+    public EditingModes Mode;
+}
+
+public enum EditingModes
+{
+    ADD,
+    REMOVE
 }

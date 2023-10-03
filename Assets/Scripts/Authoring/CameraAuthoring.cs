@@ -21,4 +21,8 @@ public struct CameraData : IComponentData
     // Screen to World Ray
     public float3 Origin;
     public float3 Direction;
+
+    // Hit position
+    public bool Intersects;
+    public float3 Intersection;
 }

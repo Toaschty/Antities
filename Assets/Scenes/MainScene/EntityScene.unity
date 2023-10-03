@@ -177,6 +177,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1137044012}
   - component: {fileID: 1137044013}
+  - component: {fileID: 1137044014}
   m_Layer: 0
   m_Name: Terrain
   m_TagString: Untagged
@@ -226,6 +227,27 @@ MonoBehaviour:
   ChunkBorder: {fileID: 3533476821165759916, guid: 5a845a172608ab74db34116767a680e9,
     type: 3}
   Brush: {fileID: 5019480330018263199, guid: 72dcdfab5175da54aae27acce2fc573e, type: 3}
+--- !u!114 &1137044014
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1137044011}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7aee8f0cbca230f4d8dddb04adf2f352, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Colony: {fileID: 1018898285642061886, guid: 816b9c48c9d14c4409525895c5baf33c, type: 3}
+  Food: {fileID: 1449328753871312726, guid: a223e7ecea69a7540b3865574683e315, type: 3}
+  Tree: {fileID: 919132149155446097, guid: 7aac66fb011d8744585856aa3833fb7d, type: 3}
+  Halo_Colony: {fileID: 5358079000192756567, guid: b3949600ec10c82488c0c23a25eb52c1,
+    type: 3}
+  Halo_Food: {fileID: 2936830409647972916, guid: bf3d2b177867795439a3db41c0733393,
+    type: 3}
+  Halo_Tree: {fileID: 5635531641567062712, guid: 619778ab31d2ad847bb2fc6052591329,
+    type: 3}
 --- !u!1 &1797817622
 GameObject:
   m_ObjectHideFlags: 0

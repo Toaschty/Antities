@@ -206,34 +206,19 @@ public partial struct TerrainSystem : ISystem
         ChunkLookup.Update(ref state);
 
         // Terrain Editing
-        CameraData data = SystemAPI.GetSingleton<CameraData>();
+        CameraData cameraData = SystemAPI.GetSingleton<CameraData>();
         BrushData brushData = SystemAPI.GetSingleton<BrushData>();
         CollisionWorld CollisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
         Terrain Terrain = SystemAPI.GetSingleton<Terrain>();
 
-        // Handle mouse input
-        RaycastInput mouseRayInput = new RaycastInput
-        {
-            Start = data.Origin,
-            End = data.Origin + 500f * data.Direction,
-            Filter = new CollisionFilter
-            {
-                BelongsTo = ~0u,
-                CollidesWith = 128u,
-                GroupIndex = 0,
-            }
-        };
-
-        // Handle state of brush
-        Unity.Physics.RaycastHit hit;
-        if (CollisionWorld.CastRay(mouseRayInput, out hit))
+        if (cameraData.Intersects && !Input.GetMouseButton(1))
         {
             if (!state.EntityManager.IsEnabled(brushData.Instance))
                 state.EntityManager.SetEnabled(brushData.Instance, true);
 
             state.EntityManager.SetComponentData(brushData.Instance, new LocalTransform
             {
-                Position = hit.Position,
+                Position = cameraData.Intersection,
                 Rotation = quaternion.identity,
                 Scale = brushData.BrushSize,
             });
@@ -255,7 +240,7 @@ public partial struct TerrainSystem : ISystem
         SystemAPI.GetSingletonRW<BrushData>().ValueRW = brushData;
 
         // Handle terrain editing
-        if (hit.Entity != Entity.Null && Input.GetMouseButton(0))
+        if (Input.GetMouseButton(0) && !Input.GetMouseButton(1))
         {
             TerrainEditing editingData = SystemAPI.GetSingleton<TerrainEditing>();
 
@@ -263,7 +248,7 @@ public partial struct TerrainSystem : ISystem
             NativeList<DistanceHit> chunkHits = new NativeList<DistanceHit>(Allocator.Temp);
             PointDistanceInput chunkInput = new PointDistanceInput
             {
-                Position = hit.Position,
+                Position = cameraData.Intersection,
                 MaxDistance = brushData.BrushSize,
                 Filter = new CollisionFilter
                 {
@@ -299,7 +284,7 @@ public partial struct TerrainSystem : ISystem
                     {
                         for (int z = (int)chunkData.BaseCoords.z; z < (int)chunkData.BaseCoords.z + chunkData.Depth; z++)
                         {
-                            float distance = math.distance(new float3(x, y, z), hit.Position);
+                            float distance = math.distance(new float3(x, y, z), cameraData.Intersection);
 
                             if (distance < brushData.BrushSize / 2)
                             {

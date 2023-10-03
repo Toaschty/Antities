@@ -58,6 +58,7 @@ public class Controller : MonoBehaviour
         if (Input.GetMouseButtonUp(1)) { Cursor.lockState= CursorLockMode.None; }
 
         // Handle zoom input
+        if (Input.GetKey(KeyCode.LeftShift)) return;
         cameraZoom -= Input.mouseScrollDelta.y;
         cameraZoom = Mathf.Clamp(cameraZoom, MinZoom, MaxZoom);
     }

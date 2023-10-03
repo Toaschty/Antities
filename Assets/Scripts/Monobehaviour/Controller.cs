@@ -38,9 +38,9 @@ public class Controller : MonoBehaviour
     void HandleInput()
     {
         // Handle movement inputs
-        movementInput.x = Input.GetAxis("Horizontal");
-        movementInput.z = Input.GetAxis("Vertical");
-        movementInput.y = Input.GetAxis("UpDown");
+        movementInput.x = Input.GetAxisRaw("Horizontal");
+        movementInput.z = Input.GetAxisRaw("Vertical");
+        movementInput.y = Input.GetAxisRaw("UpDown");
 
         // Handle shift input
         speedBoost = Input.GetKey(KeyCode.LeftShift);
@@ -48,8 +48,8 @@ public class Controller : MonoBehaviour
         // Handle rotation inputs
         if (Input.GetMouseButton(1))
         {
-            horizontalAngle += Input.GetAxis("Mouse X") * LookSpeed * Time.deltaTime;
-            verticalAngle -= Input.GetAxis("Mouse Y") * LookSpeed * Time.deltaTime;
+            horizontalAngle += Input.GetAxis("Mouse X") * LookSpeed * Time.unscaledDeltaTime;
+            verticalAngle -= Input.GetAxis("Mouse Y") * LookSpeed * Time.unscaledDeltaTime;
 
             verticalAngle = Mathf.Clamp(verticalAngle, -MaxVerticalAngle, MaxVerticalAngle);
         }
@@ -74,8 +74,8 @@ public class Controller : MonoBehaviour
         float speed = speedBoost ? BoostSpeed : NormalSpeed;
 
         // Smoothly accelartion to desired movement
-        Vector3.SmoothDamp(velocity, movement * speed, ref velocity, SmoothTime);
-        transform.position += velocity * Time.deltaTime;
+        Vector3.SmoothDamp(velocity, movement * speed, ref velocity, SmoothTime, float.PositiveInfinity, Time.unscaledDeltaTime);
+        transform.position += velocity * Time.unscaledDeltaTime;
     }
 
     void HandleCameraRotation()

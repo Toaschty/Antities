@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Entities;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class EditingSettings : MonoBehaviour, IMenu
@@ -9,13 +6,23 @@ public class EditingSettings : MonoBehaviour, IMenu
     public GameObject AdditionButton;
     public GameObject RemovalButton;
 
+    private EntityManager manager;
     private EntityQuery query;
+    private EntityQuery brushQuery;
     private Entity editing;
 
     private void Awake()
     {
-        query = World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(new ComponentType[] { typeof(TerrainEditing) });
-        editing = World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntity();
+        manager = World.DefaultGameObjectInjectionWorld.EntityManager;
+        query = manager.CreateEntityQuery(new ComponentType[] { typeof(TerrainEditing) });
+        brushQuery = manager.CreateEntityQuery(new ComponentType[] { typeof(BrushData) });
+        editing = manager.CreateEntity();
+    }
+
+    private void OnApplicationQuit()
+    {
+        query.Dispose();
+        brushQuery.Dispose();
     }
 
     public void SelectAddition()
@@ -25,9 +32,7 @@ public class EditingSettings : MonoBehaviour, IMenu
         RemovalButton.transform.GetChild(0).gameObject.SetActive(false);
 
         // Switch to addition mode
-        RefRW<TerrainEditing> editingData;
-        query.TryGetSingletonRW(out editingData);
-        editingData.ValueRW.Mode = EditingModes.ADD;
+        query.GetSingletonRW<TerrainEditing>().ValueRW.Mode = EditingModes.ADD;
     }
 
     public void SelectRemoval()
@@ -37,14 +42,12 @@ public class EditingSettings : MonoBehaviour, IMenu
         RemovalButton.transform.GetChild(0).gameObject.SetActive(true);
 
         // Switch to removal mode
-        RefRW<TerrainEditing> editingData;
-        query.TryGetSingletonRW(out editingData);
-        editingData.ValueRW.Mode = EditingModes.REMOVE;
+        query.GetSingletonRW<TerrainEditing>().ValueRW.Mode = EditingModes.REMOVE;
     }
 
     public void OpenMenu()
     {
-        World.DefaultGameObjectInjectionWorld.EntityManager.AddComponentData(editing, new TerrainEditing
+        manager.AddComponentData(editing, new TerrainEditing
         {
             Mode = EditingModes.ADD
         });
@@ -55,6 +58,7 @@ public class EditingSettings : MonoBehaviour, IMenu
 
     public void CloseMenu()
     {
-        World.DefaultGameObjectInjectionWorld.EntityManager.RemoveComponent<TerrainEditing>(editing);
+        manager.RemoveComponent<TerrainEditing>(editing);
+        manager.SetEnabled(brushQuery.GetSingleton<BrushData>().Instance, false);
     }
 }

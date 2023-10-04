@@ -15,7 +15,7 @@ public partial struct ObjectPlacingSystem : ISystem
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<TerrainObjects>();
-        state.RequireForUpdate<ObjectPlacing>();
+        state.RequireForUpdate<PlacementSettings>();
     }
 
     [BurstCompile]
@@ -23,7 +23,7 @@ public partial struct ObjectPlacingSystem : ISystem
     {
         CameraData cameraData = SystemAPI.GetSingleton<CameraData>();
         TerrainObjects objects = SystemAPI.GetSingleton<TerrainObjects>();
-        ObjectPlacing objPlacing = SystemAPI.GetSingleton<ObjectPlacing>();
+        PlacementSettings objPlacing = SystemAPI.GetSingleton<PlacementSettings>();
 
         // Handle keyboard input
         if (Input.GetKeyDown(KeyCode.R))
@@ -90,7 +90,7 @@ public partial struct ObjectPlacingSystem : ISystem
                 Rotation = lt.TransformRotation(quaternion.RotateY(math.radians(objPlacing.Angle))),
                 Scale = objPlacing.Scale,
             });
-            state.EntityManager.AddComponent<TerrainObject>(instance);
+            state.EntityManager.AddComponent<PlacedTerrainObject>(instance);
         }
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 
-public class ObjectPlacingAuthoring : MonoBehaviour
+public class TerrainObjectsAuthoring : MonoBehaviour
 {
     [Header("Objects")]
     public GameObject Colony;
@@ -15,9 +15,9 @@ public class ObjectPlacingAuthoring : MonoBehaviour
     public GameObject Halo_Food;
     public GameObject Halo_Tree;
 
-    class Baker : Baker<ObjectPlacingAuthoring>
+    class Baker : Baker<TerrainObjectsAuthoring>
     {
-        public override void Bake(ObjectPlacingAuthoring authoring)
+        public override void Bake(TerrainObjectsAuthoring authoring)
         {
             var entity = GetEntity(TransformUsageFlags.None);
             AddComponent(entity, new TerrainObjects
@@ -33,6 +33,7 @@ public class ObjectPlacingAuthoring : MonoBehaviour
     }
 }
 
+// Defines placable objects
 public struct TerrainObjects : IComponentData
 {
     public Entity Colony;
@@ -44,19 +45,36 @@ public struct TerrainObjects : IComponentData
     public Entity Halo_Tree;
 
     public Entity CurrentHalo;
+
+    public static EntityQuery GetQuery()
+    {
+        return World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(new ComponentType[] { typeof(TerrainObjects) });
+    }
 }
 
-public struct TerrainObject : IComponentData
+
+// Defines placed object on terrain
+public struct PlacedTerrainObject : IComponentData
 {
+    public static EntityQuery GetQuery()
+    {
+        return World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(new ComponentType[] { typeof(PlacedTerrainObject) });
+    }
 }
 
-public struct ObjectPlacing : IComponentData
+// Defines current object placing settings
+public struct PlacementSettings : IComponentData
 {
     public Objects Object;
 
     // Spawn settings
     public float Angle;
     public float Scale;
+
+    public static EntityQuery GetQuery()
+    {
+        return World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(new ComponentType[] { typeof(PlacementSettings) });
+    }
 }
 
 public enum Objects
@@ -66,6 +84,7 @@ public enum Objects
     TREE
 }
 
+// Defines currently selected Object
 public struct SelectedObject : IComponentData
 {
 }

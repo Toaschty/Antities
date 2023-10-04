@@ -33,4 +33,9 @@ public struct CameraData : IComponentData
     public bool Intersect;
     public float3 Intersection;
     public Entity Entity;
+
+    public static EntityQuery GetQuery()
+    {
+        return World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(new ComponentType[] { typeof(CameraData) });
+    }
 }

@@ -21,7 +21,7 @@ public partial struct ObjectSelectorSystem : ISystem
         if (cameraData.Intersect && Input.GetMouseButtonDown(0))
         {
             // Check if current object is a terrain object
-            if (!state.EntityManager.HasComponent<TerrainObject>(cameraData.Entity))
+            if (!state.EntityManager.HasComponent<PlacedTerrainObject>(cameraData.Entity))
                 return;
 
             // Deselect previous entity

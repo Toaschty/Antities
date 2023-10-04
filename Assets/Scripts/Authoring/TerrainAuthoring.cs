@@ -80,6 +80,11 @@ public struct Terrain : IComponentData
 
     public Entity EmptyChunk;
     public Entity ChunkBorder;
+
+    public static EntityQuery GetQuery()
+    {
+        return World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(new ComponentType[] { typeof(Terrain) });
+    }
 }
 
 public struct Chunk : IComponentData

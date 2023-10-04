@@ -5,7 +5,7 @@ using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
 
-public class ObjectDetails : MonoBehaviour
+public class ObjectDetailsSettings : MonoBehaviour
 {
     public GameObject Details;
     public TMPro.TMP_Text Name;
@@ -15,18 +15,23 @@ public class ObjectDetails : MonoBehaviour
 
     public Vector3 Offset;
 
+    private EntityManager manager;
     private EntityQuery query;
+    private EntityQuery cameraQuery;
     private Entity entity;
     private Vector3 objectPosition;
 
     private void Awake()
     {
-        query = World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(new ComponentType[] { typeof(SelectedObject), typeof(LocalTransform), typeof(ObjectDetailInfo) });
+        manager = World.DefaultGameObjectInjectionWorld.EntityManager;
+        query = manager.CreateEntityQuery(new ComponentType[] { typeof(SelectedObject), typeof(LocalTransform), typeof(ObjectDetailInfo) });
+        cameraQuery = CameraData.GetQuery();
     }
 
     private void OnApplicationQuit()
     {
         query.Dispose();
+        cameraQuery.Dispose();
     }
 
     void Update()
@@ -70,14 +75,16 @@ public class ObjectDetails : MonoBehaviour
 
     public void CloseDetailMenu()
     {
-        World.DefaultGameObjectInjectionWorld.EntityManager.RemoveComponent<SelectedObject>(entity);
+        manager.RemoveComponent<SelectedObject>(entity);
+        cameraQuery.GetSingletonRW<CameraData>().ValueRW.OnUI = false;
         Details.SetActive(false);
         entity = Entity.Null;
     }
 
     public void DeleteObject()
     {
-        World.DefaultGameObjectInjectionWorld.EntityManager.DestroyEntity(entity);
+        manager.DestroyEntity(entity);
+        cameraQuery.GetSingletonRW<CameraData>().ValueRW.OnUI = false;
         Details.SetActive(false);
         entity = Entity.Null;
     }

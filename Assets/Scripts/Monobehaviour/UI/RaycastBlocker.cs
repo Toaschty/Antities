@@ -10,7 +10,7 @@ public class RaycastBlocker : MonoBehaviour, IPointerEnterHandler, IPointerExitH
 
     private void Awake()
     {
-        query = World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(new ComponentType[] { typeof(CameraData) });
+        query = CameraData.GetQuery();
     }
 
     private void OnApplicationQuit()

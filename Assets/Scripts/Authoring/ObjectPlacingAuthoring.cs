@@ -65,3 +65,7 @@ public enum Objects
     FOOD,
     TREE
 }
+
+public struct SelectedObject : IComponentData
+{
+}

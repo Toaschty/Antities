@@ -241,12 +241,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Colony: {fileID: 1018898285642061886, guid: 816b9c48c9d14c4409525895c5baf33c, type: 3}
   Food: {fileID: 1449328753871312726, guid: a223e7ecea69a7540b3865574683e315, type: 3}
-  Tree: {fileID: 919132149155446097, guid: 7aac66fb011d8744585856aa3833fb7d, type: 3}
+  Tree: {fileID: 4220320020616266208, guid: 82f270079f178644c89e812bb1efa7f4, type: 3}
   Halo_Colony: {fileID: 5358079000192756567, guid: b3949600ec10c82488c0c23a25eb52c1,
     type: 3}
   Halo_Food: {fileID: 2936830409647972916, guid: bf3d2b177867795439a3db41c0733393,
     type: 3}
-  Halo_Tree: {fileID: 5635531641567062712, guid: 619778ab31d2ad847bb2fc6052591329,
+  Halo_Tree: {fileID: 1191274073246297121, guid: 3a19697292345a444a3932afa3c04be7,
     type: 3}
 --- !u!1 &1797817622
 GameObject:

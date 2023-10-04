@@ -18,11 +18,19 @@ public class CameraAuthoring : MonoBehaviour
 
 public struct CameraData : IComponentData
 {
+    // UI
+    public bool OnUI;
+
     // Screen to World Ray
     public float3 Origin;
     public float3 Direction;
 
-    // Hit position
-    public bool Intersects;
+    // Terrain Hit position
+    public bool TerrainIntersect;
+    public float3 TerrainIntersection;
+
+    // General Hit
+    public bool Intersect;
     public float3 Intersection;
+    public Entity Entity;
 }

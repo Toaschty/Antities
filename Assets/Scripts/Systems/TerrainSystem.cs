@@ -211,14 +211,14 @@ public partial struct TerrainSystem : ISystem
         CollisionWorld CollisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
         Terrain Terrain = SystemAPI.GetSingleton<Terrain>();
 
-        if (cameraData.Intersects && !Input.GetMouseButton(1))
+        if (cameraData.TerrainIntersect && !Input.GetMouseButton(1))
         {
             if (!state.EntityManager.IsEnabled(brushData.Instance))
                 state.EntityManager.SetEnabled(brushData.Instance, true);
 
             state.EntityManager.SetComponentData(brushData.Instance, new LocalTransform
             {
-                Position = cameraData.Intersection,
+                Position = cameraData.TerrainIntersection,
                 Rotation = quaternion.identity,
                 Scale = brushData.BrushSize,
             });
@@ -240,7 +240,7 @@ public partial struct TerrainSystem : ISystem
         SystemAPI.GetSingletonRW<BrushData>().ValueRW = brushData;
 
         // Handle terrain editing
-        if (Input.GetMouseButton(0) && !Input.GetMouseButton(1))
+        if (!cameraData.OnUI && Input.GetMouseButton(0) && !Input.GetMouseButton(1))
         {
             TerrainEditing editingData = SystemAPI.GetSingleton<TerrainEditing>();
 
@@ -248,7 +248,7 @@ public partial struct TerrainSystem : ISystem
             NativeList<DistanceHit> chunkHits = new NativeList<DistanceHit>(Allocator.Temp);
             PointDistanceInput chunkInput = new PointDistanceInput
             {
-                Position = cameraData.Intersection,
+                Position = cameraData.TerrainIntersection,
                 MaxDistance = brushData.BrushSize,
                 Filter = new CollisionFilter
                 {
@@ -284,7 +284,7 @@ public partial struct TerrainSystem : ISystem
                     {
                         for (int z = (int)chunkData.BaseCoords.z; z < (int)chunkData.BaseCoords.z + chunkData.Depth; z++)
                         {
-                            float distance = math.distance(new float3(x, y, z), cameraData.Intersection);
+                            float distance = math.distance(new float3(x, y, z), cameraData.TerrainIntersection);
 
                             if (distance < brushData.BrushSize / 2)
                             {

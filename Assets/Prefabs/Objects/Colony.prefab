@@ -12,7 +12,8 @@ GameObject:
   - component: {fileID: 285708114512367788}
   - component: {fileID: 6935242230694513409}
   - component: {fileID: 5532963329601753168}
-  m_Layer: 0
+  - component: {fileID: 8497741523833182679}
+  m_Layer: 8
   m_Name: Colony
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -105,3 +106,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &8497741523833182679
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1018898285642061886}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e700ad6ab54a233409cbbab83f92ab0d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Name: Ant Colony
+  NameInfo: 'Homebase of Ants
+
+    Ants will carry food to this location'
+  Details: Ant Amount
+  DetailsInfo: Amount of Ants inside this Colony

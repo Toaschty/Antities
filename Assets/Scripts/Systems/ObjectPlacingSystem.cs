@@ -43,11 +43,11 @@ public partial struct ObjectPlacingSystem : ISystem
         }
 
         // Handle object halo
-        if (cameraData.Intersects && !Input.GetMouseButton(1))
+        if (cameraData.TerrainIntersect && !Input.GetMouseButton(1))
         {
             state.EntityManager.SetComponentData(objects.CurrentHalo, new LocalTransform
             {
-                Position = cameraData.Intersection,
+                Position = cameraData.TerrainIntersection,
                 Rotation = quaternion.RotateY(math.radians(objPlacing.Angle)),
                 Scale = objPlacing.Scale,
             });
@@ -64,7 +64,7 @@ public partial struct ObjectPlacingSystem : ISystem
         SystemAPI.SetSingleton(objPlacing);
 
         // Handle object placing
-        if (cameraData.Intersects && Input.GetMouseButtonDown(0))
+        if (cameraData.TerrainIntersect && !cameraData.OnUI && Input.GetMouseButtonDown(0))
         {
             Entity objectToSpawn = Entity.Null;
 
@@ -86,7 +86,7 @@ public partial struct ObjectPlacingSystem : ISystem
             LocalTransform lt = state.EntityManager.GetComponentData<LocalTransform>(instance);
             state.EntityManager.SetComponentData(instance, new LocalTransform
             {
-                Position = cameraData.Intersection,
+                Position = cameraData.TerrainIntersection,
                 Rotation = lt.TransformRotation(quaternion.RotateY(math.radians(objPlacing.Angle))),
                 Scale = objPlacing.Scale,
             });

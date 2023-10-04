@@ -18,7 +18,7 @@ public partial struct CameraSystem : ISystem
         CollisionWorld CollisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
 
         GetCameraRay(data);
-        CalculateTerrainIntersection(data, CollisionWorld);
+        CalculateIntersections(data, CollisionWorld);
     }
 
     public void GetCameraRay(RefRW<CameraData> data)
@@ -32,10 +32,10 @@ public partial struct CameraSystem : ISystem
     }
 
     [BurstCompile]
-    public void CalculateTerrainIntersection(RefRW<CameraData> data, CollisionWorld CollisionWorld)
+    public void CalculateIntersections(RefRW<CameraData> data, CollisionWorld CollisionWorld)
     {
         // Handle mouse input
-        RaycastInput mouseRayInput = new RaycastInput
+        RaycastInput terrainRayCast = new RaycastInput
         {
             Start = data.ValueRO.Origin,
             End = data.ValueRO.Origin + 500f * data.ValueRO.Direction,
@@ -47,17 +47,44 @@ public partial struct CameraSystem : ISystem
             }
         };
 
-        // Handle state of brush
-        Unity.Physics.RaycastHit hit;
-        if (CollisionWorld.CastRay(mouseRayInput, out hit))
+        RaycastInput generalRayCast = new RaycastInput
         {
-            data.ValueRW.Intersection = hit.Position;
-            data.ValueRW.Intersects = true;
+            Start = data.ValueRO.Origin,
+            End = data.ValueRO.Origin + 500f * data.ValueRO.Direction,
+            Filter = new CollisionFilter
+            {
+                BelongsTo = ~0u,
+                CollidesWith = 960u,
+                GroupIndex = 0,
+            }
+        };
+
+        // Handle terrain raycast
+        Unity.Physics.RaycastHit terrainHit;
+        if (CollisionWorld.CastRay(terrainRayCast, out terrainHit))
+        {
+            data.ValueRW.TerrainIntersection = terrainHit.Position;
+            data.ValueRW.TerrainIntersect = true;
+        }
+        else
+        {
+            data.ValueRW.TerrainIntersection = float3.zero;
+            data.ValueRW.TerrainIntersect = false;
+        }
+
+        // Handle general raycast
+        Unity.Physics.RaycastHit generalHit;
+        if (CollisionWorld.CastRay(generalRayCast, out generalHit))
+        {
+            data.ValueRW.Intersection = generalHit.Position;
+            data.ValueRW.Intersect = true;
+            data.ValueRW.Entity = generalHit.Entity;
         }
         else
         {
             data.ValueRW.Intersection = float3.zero;
-            data.ValueRW.Intersects = false;
+            data.ValueRW.Intersect = false;
+            data.ValueRW.Entity = Entity.Null;
         }
     }
 }

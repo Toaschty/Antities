@@ -239,10 +239,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7aee8f0cbca230f4d8dddb04adf2f352, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Colony: {fileID: 1018898285642061886, guid: 816b9c48c9d14c4409525895c5baf33c, type: 3}
+  Colony: {fileID: 1719386561442219117, guid: 8206ed8cb28d4cc40a1ad9b4f7521965, type: 3}
   Food: {fileID: 1449328753871312726, guid: a223e7ecea69a7540b3865574683e315, type: 3}
   Tree: {fileID: 4220320020616266208, guid: 82f270079f178644c89e812bb1efa7f4, type: 3}
-  Halo_Colony: {fileID: 5358079000192756567, guid: b3949600ec10c82488c0c23a25eb52c1,
+  Halo_Colony: {fileID: 9065649075841712970, guid: 7a3ca690f0959754b9e4f807cc0a90cb,
     type: 3}
   Halo_Food: {fileID: 2936830409647972916, guid: bf3d2b177867795439a3db41c0733393,
     type: 3}

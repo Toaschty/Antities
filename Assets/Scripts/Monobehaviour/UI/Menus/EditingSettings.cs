@@ -59,6 +59,9 @@ public class EditingSettings : MonoBehaviour, IMenu
     public void CloseMenu()
     {
         manager.RemoveComponent<TerrainEditing>(editing);
-        manager.SetEnabled(brushQuery.GetSingleton<BrushData>().Instance, false);
+
+        // Disable brush
+        if (brushQuery.GetSingleton<BrushData>().Instance != Entity.Null)
+            manager.SetEnabled(brushQuery.GetSingleton<BrushData>().Instance, false);
     }
 }

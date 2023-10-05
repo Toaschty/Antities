@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class AntSpawnerAuthoring : MonoBehaviour
 {
-    public int Count;
     public GameObject Ant;
 
     class Baker : Baker<AntSpawnerAuthoring>
@@ -15,7 +14,6 @@ public class AntSpawnerAuthoring : MonoBehaviour
             var entity = GetEntity(TransformUsageFlags.None);
             AddComponent(entity, new AntSpawner
             {
-                count = authoring.Count,
                 ant = GetEntity(authoring.Ant, TransformUsageFlags.None),
             });
         }
@@ -24,6 +22,9 @@ public class AntSpawnerAuthoring : MonoBehaviour
 
 public struct AntSpawner : IComponentData
 {
-    public int count;
     public Entity ant;
+}
+
+public struct RunningSimulation : IComponentData
+{
 }

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Entities;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -10,14 +11,24 @@ public class TimeScaleController : MonoBehaviour
 
     private Image stateImage;
     private TimeState timeState = TimeState.Pause;
+    private EntityQuery colonyQuery;
 
     private void Start()
     {
         stateImage = GetComponent<Image>();
+        colonyQuery = Colony.GetQuery();
+    }
+
+    private void OnApplicationQuit()
+    {
+        colonyQuery.Dispose();
     }
 
     public void SwitchTimeState()
     {
+        if (colonyQuery.IsEmpty)
+            return;
+
         // Toggle to next state
         timeState++;
 

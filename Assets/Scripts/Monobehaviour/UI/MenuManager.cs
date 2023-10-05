@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class MenuManager : MonoBehaviour
 {
@@ -47,15 +48,5 @@ public class MenuManager : MonoBehaviour
                 ToggleMenu(currentMenu);
             }
         }
-
-        // Quick Menu Selection
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-            ToggleMenu(0);
-        if (Input.GetKeyDown(KeyCode.Alpha2))
-            ToggleMenu(1);
-        if (Input.GetKeyDown(KeyCode.Alpha3))
-            ToggleMenu(2);
-        if (Input.GetKeyDown(KeyCode.Alpha4))
-            ToggleMenu(3);
     }
 }

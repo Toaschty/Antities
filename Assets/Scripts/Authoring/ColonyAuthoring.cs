@@ -13,6 +13,7 @@ public class ColonyAuthoring : MonoBehaviour
             AddComponent(entity, new Colony
             {
                 DepositRadius = authoring.DepositRadius,
+                AntAmount = 0,
             });
         }
     }
@@ -27,4 +28,11 @@ public class ColonyAuthoring : MonoBehaviour
 public struct Colony : IComponentData
 {
     public float DepositRadius;
+
+    public int AntAmount;
+
+    public static EntityQuery GetQuery()
+    {
+        return World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(new ComponentType[] { typeof(Colony) });
+    }
 }

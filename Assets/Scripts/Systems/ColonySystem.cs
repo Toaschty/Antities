@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -24,7 +25,6 @@ public partial struct ColonySystem : ISystem
     {
         var ECB = new EntityCommandBuffer(Allocator.TempJob);
         var CollisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
-
         antLookup.Update(ref state);
 
         var depositJob = new DepositJob

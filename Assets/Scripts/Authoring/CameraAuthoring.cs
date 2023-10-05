@@ -28,6 +28,7 @@ public struct CameraData : IComponentData
     // Terrain Hit position
     public bool TerrainIntersect;
     public float3 TerrainIntersection;
+    public float3 TerrainNormal;
 
     // General Hit
     public bool Intersect;

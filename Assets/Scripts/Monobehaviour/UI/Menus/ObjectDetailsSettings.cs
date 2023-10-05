@@ -7,17 +7,21 @@ using UnityEngine;
 
 public class ObjectDetailsSettings : MonoBehaviour
 {
+    [Header("Detail View")]
     public GameObject Details;
     public TMPro.TMP_Text Name;
     public InfoDisplay NameInfo;
     public TMPro.TMP_Text Detail;
     public InfoDisplay DetailInfo;
+    public TMPro.TMP_InputField InputField;
 
+    [Header("Detail View Offset")]
     public Vector3 Offset;
 
     private EntityManager manager;
     private EntityQuery query;
     private EntityQuery cameraQuery;
+    private EntityQuery colonyQuery;
     private Entity entity;
     private Vector3 objectPosition;
 
@@ -26,12 +30,14 @@ public class ObjectDetailsSettings : MonoBehaviour
         manager = World.DefaultGameObjectInjectionWorld.EntityManager;
         query = manager.CreateEntityQuery(new ComponentType[] { typeof(SelectedObject), typeof(LocalTransform), typeof(ObjectDetailInfo) });
         cameraQuery = CameraData.GetQuery();
+        colonyQuery = Colony.GetQuery();
     }
 
     private void OnApplicationQuit()
     {
         query.Dispose();
         cameraQuery.Dispose();
+        colonyQuery.Dispose();
     }
 
     void Update()
@@ -52,7 +58,9 @@ public class ObjectDetailsSettings : MonoBehaviour
 
             // Get screen point
             Vector3 screenPoint = Camera.main.WorldToScreenPoint(objectPosition + Offset);
-            Details.transform.position = screenPoint;
+
+            if (screenPoint.z > 0)
+                Details.transform.position = screenPoint;
         }
     }
 
@@ -61,11 +69,41 @@ public class ObjectDetailsSettings : MonoBehaviour
         entity = query.ToEntityArray(Allocator.Temp)[0];
         objectPosition = query.GetSingleton<LocalTransform>().Position;
 
+        // Display Info
         ObjectDetailInfo info = query.GetSingleton<ObjectDetailInfo>();
         Name.text = info.Name.ToString();
         NameInfo.InfoText = info.NameInfo.ToString();
         Detail.text = info.Details.ToString();
         DetailInfo.InfoText = info.DetailsInfo.ToString();
+
+        // Disable options if not data is given
+        if (Detail.text == "")
+            Detail.transform.parent.gameObject.SetActive(false);
+        else
+            Detail.transform.parent.gameObject.SetActive(true);
+
+        // Get value inside colony or food
+        if (manager.HasComponent<Colony>(entity))
+            InputField.text = manager.GetComponentData<Colony>(entity).AntAmount.ToString();
+        if (manager.HasComponent<Food>(entity))
+            InputField.text = manager.GetComponentData<Food>(entity).Amount.ToString();
+    }
+
+    public void SetData(string value)
+    {
+        // Set value inside colony or food
+        if (manager.HasComponent<Colony>(entity))
+        {
+            Colony old = manager.GetComponentData<Colony>(entity);
+            old.AntAmount = int.Parse(value);
+            manager.SetComponentData(entity, old);
+        }
+        if (manager.HasComponent<Food>(entity))
+        {
+            Food old = manager.GetComponentData<Food>(entity);
+            old.Amount = int.Parse(value);
+            manager.SetComponentData(entity, old);
+        }
     }
 
     public void OpenDetailMenu()

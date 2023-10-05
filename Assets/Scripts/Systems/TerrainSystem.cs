@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+using System;
 using System.Collections;
 using System.Linq;
 using Unity.Burst;
@@ -191,7 +192,12 @@ public partial struct TerrainSystem : ISystem
             for (int t = 0; t < triangles3.Length; t++)
                 triangles3[t] = new int3(triangles[t * 3], triangles[t * 3 + 1], triangles[t * 3 + 2]);
 
-            BlobAssetReference<Unity.Physics.Collider> meshCollider = Unity.Physics.MeshCollider.Create(vertices.Reinterpret<float3>(), triangles3);
+            BlobAssetReference<Unity.Physics.Collider> meshCollider = Unity.Physics.MeshCollider.Create(vertices.Reinterpret<float3>(), triangles3, new CollisionFilter
+            {
+                BelongsTo = 128u,
+                CollidesWith = 512u,
+                GroupIndex = 0
+            });
 
             state.EntityManager.SetComponentData(chunks[i], new PhysicsCollider
             {
@@ -284,6 +290,12 @@ public partial struct TerrainSystem : ISystem
                     {
                         for (int z = (int)chunkData.BaseCoords.z; z < (int)chunkData.BaseCoords.z + chunkData.Depth; z++)
                         {
+                            // Restrict editing on borders
+                            if ( x == 0 || x == Terrain.Width   ||
+                                 y == 0 || y == Terrain.Height  ||
+                                 z == 0 || z == Terrain.Depth   )
+                                continue;
+
                             float distance = math.distance(new float3(x, y, z), cameraData.TerrainIntersection);
 
                             if (distance < brushData.BrushSize / 2)
@@ -408,7 +420,12 @@ partial struct ApplyCollidersJob : IJob
         for (int t = 0; t < MeshTris.Length; t += 3)
             CTris[ii++] = new int3(MeshTris[t], MeshTris[t + 1], MeshTris[t + 2]);
 
-        BlobCollider[0] = Unity.Physics.MeshCollider.Create(MeshVerts, CTris);
+        BlobCollider[0] = Unity.Physics.MeshCollider.Create(MeshVerts, CTris, new CollisionFilter
+        {
+            BelongsTo = 128u,
+            CollidesWith = 512u,
+            GroupIndex = 0
+        });
     }
 }
 
@@ -439,6 +456,12 @@ public partial struct NoiseJob : IJobParallelFor
             TerrainData[index] *= 1 - math.pow(((y - TerrainSettings.NoiseDropOffHeight) / (TerrainSettings.Height - TerrainSettings.NoiseDropOffHeight)), 3);
         if (y < TerrainSettings.NoiseDropOffDepth)
             TerrainData[index] = math.lerp(TerrainData[index], TerrainSettings.Threshold + 0.01f, 1 - (y / TerrainSettings.NoiseDropOffDepth));
+
+        // Add borders
+        if ( x == 0 || x == TerrainSettings.Width   ||
+             y == 0 || y == TerrainSettings.Height  ||
+             z == 0 || z == TerrainSettings.Depth   )
+            TerrainData[index] = 0f;
     }
 
     private float Perlin3D(float x, float y, float z)

@@ -18,6 +18,11 @@ public class RaycastBlocker : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         query.Dispose();
     }
 
+    public void LeaveGUI()
+    {
+        query.GetSingletonRW<CameraData>().ValueRW.OnUI = false;
+    }
+
     public void OnPointerEnter(PointerEventData eventData)
     {
         query.GetSingletonRW<CameraData>().ValueRW.OnUI = true;

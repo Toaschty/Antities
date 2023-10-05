@@ -18,7 +18,7 @@ public partial struct ObjectSelectorSystem : ISystem
     {
         CameraData cameraData = SystemAPI.GetSingleton<CameraData>();
 
-        if (cameraData.Intersect && Input.GetMouseButtonDown(0))
+        if (cameraData.Intersect && !cameraData.OnUI && Input.GetMouseButtonDown(0))
         {
             // Check if current object is a terrain object
             if (!state.EntityManager.HasComponent<PlacedTerrainObject>(cameraData.Entity))

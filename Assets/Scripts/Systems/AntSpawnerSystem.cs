@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Transforms;
 
 public partial struct AntSpawnerSystem : ISystem
 {
@@ -8,6 +10,7 @@ public partial struct AntSpawnerSystem : ISystem
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<AntSpawner>();
+        state.RequireForUpdate<RunningSimulation>();
     }
 
     [BurstCompile]
@@ -16,12 +19,19 @@ public partial struct AntSpawnerSystem : ISystem
         // Only spawn ants once
         state.Enabled = false;
 
-        var spawner = SystemAPI.GetSingleton<AntSpawner>();
+        AntSpawner spawner = SystemAPI.GetSingleton<AntSpawner>();
+        EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
 
-        var ecb = new EntityCommandBuffer(Allocator.Temp);
+        foreach (var (transform, colony) in SystemAPI.Query<RefRO<LocalTransform>, RefRO<Colony>>())
+        {
+            // Spawn ants
+            NativeArray<Entity> ants = new NativeArray<Entity>(colony.ValueRO.AntAmount, Allocator.Temp);
+            state.EntityManager.Instantiate(spawner.ant, ants);
 
-        var ants = new NativeArray<Entity>(spawner.count, Allocator.Temp);
-        ecb.Instantiate(spawner.ant, ants);
+            // Set ants to correct position
+            foreach (Entity ant in ants)
+                SystemAPI.GetComponentRW<LocalTransform>(ant).ValueRW.Position = transform.ValueRO.Position;
+        }
 
         ecb.Playback(state.EntityManager);
 
@@ -35,5 +45,6 @@ public partial struct AntSpawnerSystem : ISystem
             ant.ValueRW.DesiredDirection.y = 0f;
             ant.ValueRW.Velocity = ant.ValueRO.DesiredDirection;
         }
+
     }
 }

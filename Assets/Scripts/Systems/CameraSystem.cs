@@ -64,11 +64,13 @@ public partial struct CameraSystem : ISystem
         if (CollisionWorld.CastRay(terrainRayCast, out terrainHit))
         {
             data.ValueRW.TerrainIntersection = terrainHit.Position;
+            data.ValueRW.TerrainNormal = terrainHit.SurfaceNormal;
             data.ValueRW.TerrainIntersect = true;
         }
         else
         {
             data.ValueRW.TerrainIntersection = float3.zero;
+            data.ValueRW.TerrainNormal = float3.zero;
             data.ValueRW.TerrainIntersect = false;
         }
 

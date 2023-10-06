@@ -31,7 +31,7 @@ public class FoodAuthoring : MonoBehaviour
     }
 }
 
-public struct Food : IComponentData
+public struct Food : IComponentData, IEnableableComponent
 {
     public int MaxAmount;
     public int Amount;

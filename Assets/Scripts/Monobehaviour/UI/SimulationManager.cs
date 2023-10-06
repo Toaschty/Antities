@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 
-public class StartSimulation : MonoBehaviour
+public class SimulationManager : MonoBehaviour
 {
+    public GameObject ResetSimulationButton;
+
+    private Entity simulation;
     private EntityManager manager;
     private EntityQuery query;
     private EntityQuery colonyQuery;
@@ -14,6 +17,8 @@ public class StartSimulation : MonoBehaviour
         manager = World.DefaultGameObjectInjectionWorld.EntityManager;
         query = manager.CreateEntityQuery(new ComponentType[] { typeof(RunningSimulation) });
         colonyQuery = Colony.GetQuery();
+
+        simulation = manager.CreateEntity();
     }
 
     private void OnApplicationQuit()
@@ -33,8 +38,20 @@ public class StartSimulation : MonoBehaviour
 
         if (!query.HasSingleton<RunningSimulation>())
         {
-            Entity simulation = manager.CreateEntity();
             manager.AddComponent<RunningSimulation>(simulation);
+
+            // Enable "Reset Simulation" Button
+            ResetSimulationButton.SetActive(true);
         }
+    }
+
+    public void ResetSim()
+    {
+        // Disable "Reset Simulation" Button
+        ResetSimulationButton.SetActive(false);
+
+        // Remove Running Simulation entity
+        manager.RemoveComponent<RunningSimulation>(simulation);
+        manager.AddComponent<ResetSimulation>(simulation);
     }
 }

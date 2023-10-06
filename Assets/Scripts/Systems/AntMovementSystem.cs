@@ -26,7 +26,6 @@ public partial struct AntMovementSystem : ISystem
         var deltaTime = SystemAPI.Time.DeltaTime;
         var randomComponent = SystemAPI.GetSingletonRW<RandomComponent>();
         var entityExistance = state.EntityManager.UniversalQuery.GetEntityQueryMask();
-
         SensorLookup.Update(ref state);
         LocalToWorldLookup.Update(ref state);
 
@@ -66,6 +65,10 @@ public partial struct MovementJob : IJobEntity
         float centerSensorIntensity = SensorLookup.GetRefRO(ant.CenterSensor).ValueRO.Intensity;
         float rightSensorIntensity = SensorLookup.GetRefRO(ant.RightSensor).ValueRO.Intensity;
 
+        // Check if ant needs to be reset to colony
+        if (transform.Position.y < -5.0f)
+            transform.Position = ant.ColonyPosition;
+
         // Ant is currently turing around
         if (ant.State == AntState.TurningAround)
         {
@@ -86,9 +89,9 @@ public partial struct MovementJob : IJobEntity
             // Ant has target => Move to target
             if (ant.Target != Entity.Null)
             {
+                // Check if target entity still exists inside world
                 if (EntityExistance.MatchesIgnoreFilter(ant.Target))
                 {
-                    // Check if target entity still exists inside world
                     float3 targetPosition = LocalToWorldLookup.GetRefRO(ant.Target).ValueRO.Position;
                     float3 dir = math.normalize(targetPosition - transform.Position);
                     dir.y = 0;
@@ -131,6 +134,13 @@ public partial struct MovementJob : IJobEntity
             else
             {
                 ant.DesiredDirection = ant.RandomSteerForce;
+
+                if (math.length(ant.DesiredDirection) == 0.0f)
+                {
+                    // Force new random direction
+                    ant.RandomSteerForce = GetRandomDirection(ant.DesiredDirection, ant.RandomDirectionAngle) * ant.RandomSteerStength;
+                    ant.RandomSteerForce.y = 0f;
+                }
             }
         }
 
@@ -138,7 +148,7 @@ public partial struct MovementJob : IJobEntity
         float3 desiredDirection = math.normalize(ant.RandomSteerForce + ant.DesiredDirection) * ant.MaxSpeed;
 
         // Safety check for NaN
-        if (desiredDirection.Equals(float3.zero))
+        if (math.any(math.isnan(desiredDirection)))
             return;
 
         if (ant.IsGrounded)

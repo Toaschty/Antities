@@ -1,13 +1,10 @@
 using System.Diagnostics;
-using System.Numerics;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Transforms;
-using UnityEngine.UI;
-using UnityEngine.UIElements;
 
 public partial struct CollisionSystem : ISystem
 {
@@ -20,11 +17,13 @@ public partial struct CollisionSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        var collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
+        CollisionWorld collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
+        Terrain terrain = SystemAPI.GetSingleton<Terrain>();
 
         var collisionJob = new CollisionJob
         {
             CollisionWorld = collisionWorld,
+            Terrain = terrain,
         };
 
         var handle = collisionJob.ScheduleParallel(state.Dependency);
@@ -38,10 +37,15 @@ public partial struct CollisionSystem : ISystem
 public partial struct CollisionJob : IJobEntity
 {
     [ReadOnly] public CollisionWorld CollisionWorld;
+    [ReadOnly] public Terrain Terrain;
 
     [BurstCompile]
     public void Execute(ref LocalTransform transform, ref Ant ant)
     {
+        // Safety check
+        if (math.any(math.isnan(transform.Position)))
+            return;
+
         // Ground Check
         RaycastInput groundCheckInput = new RaycastInput
         {
@@ -108,6 +112,40 @@ public partial struct CollisionJob : IJobEntity
             ant.Velocity = newDirection;
             ant.RandomSteerForce = newDirection;
             ant.DesiredDirection = newDirection;
+        }
+
+        // Collision with outer terrain borders
+        bool flipDirection = false;
+        float3 reflectDirection = float3.zero;
+        
+        if (transform.Position.x < 1.5f && ant.Velocity.x < 0)
+        {
+            flipDirection = true;
+            reflectDirection = new float3(1.0f, 0.0f, 0.0f);
+        }
+        if (transform.Position.z < 1.5f && ant.Velocity.z < 0)
+        {
+            flipDirection = true;
+            reflectDirection = new float3(0.0f, 0.0f, 1.0f);
+        }
+        if (transform.Position.x > Terrain.Width - 1.5f && ant.Velocity.x > 0)
+        {
+            flipDirection = true;
+            reflectDirection = new float3(-1.0f, 0.0f, 0.0f);
+        }
+        if (transform.Position.z > Terrain.Depth - 1.5f && ant.Velocity.z > 0)
+        {
+            flipDirection = true;
+            reflectDirection = new float3(0.0f, 0.0f, -1.0f);
+        }
+
+        if (flipDirection)
+        {
+            float3 newDir = math.reflect(ant.Velocity, reflectDirection);
+
+            ant.DesiredDirection = newDir;
+            ant.RandomSteerForce = newDir;
+            ant.Velocity = newDir;
         }
     }
 }

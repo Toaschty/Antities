@@ -122,7 +122,9 @@ public partial struct SourceJob : IJobEntity
                 if (food.Amount <= 0)
                 {
                     // Mark food for deletion
-                    ECB.DestroyEntity(0, entity);
+                    ECB.SetComponentEnabled<Food>(0, entity, false);
+                    ECB.SetEnabled(0, entity, false);
+                    // ECB.DestroyEntity(0, entity);
                     sourceDestroyed = true;
                 }
 

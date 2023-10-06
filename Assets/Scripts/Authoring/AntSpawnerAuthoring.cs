@@ -28,3 +28,7 @@ public struct AntSpawner : IComponentData
 public struct RunningSimulation : IComponentData
 {
 }
+
+public struct ResetSimulation : IComponentData
+{
+}

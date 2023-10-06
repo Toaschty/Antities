@@ -90,6 +90,9 @@ public struct Ant : IComponentData
     // State
     public AntState State;
 
+    // Colony
+    public float3 ColonyPosition;
+
     // Movement
     public float MaxSpeed;
     public float SteerStrength;
@@ -128,6 +131,11 @@ public struct Ant : IComponentData
     // Food
     public Entity Target;
     public Entity Food;
+
+    public static EntityQuery GetQuery()
+    {
+        return World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(new ComponentType[] { typeof(Ant) });
+    }
 }
 
 [InternalBufferCapacity(512)]

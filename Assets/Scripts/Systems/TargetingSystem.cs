@@ -51,7 +51,7 @@ public partial struct TargetingJob : IJobEntity
     {
         if (ant.Target != Entity.Null)
         {
-            if (tf.ValueRO && !FoodLookup.HasComponent(ant.Target))
+            if (tf.ValueRO && !FoodLookup.IsComponentEnabled(ant.Target))
                 ant.Target = Entity.Null;
             else
                 return;
@@ -106,8 +106,8 @@ public partial struct TargetingJob : IJobEntity
             RaycastHit rayCastHit = new RaycastHit();
 
             // Skip if hit by a wall
-            //if (CollisionWorld.CastRay(input, out rayCastHit))
-            //    continue;
+            if (CollisionWorld.CastRay(input, out rayCastHit))
+                continue;
 
             if (hit.Distance < distance)
             {

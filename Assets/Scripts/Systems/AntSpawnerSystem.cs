@@ -30,7 +30,10 @@ public partial struct AntSpawnerSystem : ISystem
 
             // Set ants to correct position
             foreach (Entity ant in ants)
+            {
                 SystemAPI.GetComponentRW<LocalTransform>(ant).ValueRW.Position = transform.ValueRO.Position;
+                SystemAPI.GetComponentRW<Ant>(ant).ValueRW.ColonyPosition = transform.ValueRO.Position;
+            }
         }
 
         ecb.Playback(state.EntityManager);

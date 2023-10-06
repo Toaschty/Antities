@@ -24,4 +24,14 @@ public class InfoDisplay : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     {
         Info.text = "";
     }
+
+    private void OnDisable()
+    {
+        Info.text = "";
+    }
+
+    private void OnDestroy()
+    {
+        Info.text = "";
+    }
 }

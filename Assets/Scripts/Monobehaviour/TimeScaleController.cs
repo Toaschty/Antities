@@ -43,6 +43,14 @@ public class TimeScaleController : MonoBehaviour
 
         EventSystem.current.SetSelectedGameObject(null);
     }
+
+    public void ResetTimeState()
+    {
+        // Time.timeScale = 0;
+        timeState = 0;
+
+        stateImage.sprite = TimeStateImages[0];
+    }
 }
 
 enum TimeState

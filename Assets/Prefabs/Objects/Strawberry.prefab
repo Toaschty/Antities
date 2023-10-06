@@ -108,7 +108,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70ea319681f4fd64283b506f6e39844c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  FoodAmount: 0
+  FoodAmount: 1
   PickUpRadius: 0.75
   CarryModel: {fileID: 919132149155446097, guid: edc1dba6d822c9c4db1f2e35a4dc9f78,
     type: 3}

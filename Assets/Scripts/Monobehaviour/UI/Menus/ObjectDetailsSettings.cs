@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class ObjectDetailsSettings : MonoBehaviour
@@ -91,6 +92,9 @@ public class ObjectDetailsSettings : MonoBehaviour
 
     public void SetData(string value)
     {
+        if (value == "")
+            return;
+
         // Set value inside colony or food
         if (manager.HasComponent<Colony>(entity))
         {
@@ -102,6 +106,7 @@ public class ObjectDetailsSettings : MonoBehaviour
         {
             Food old = manager.GetComponentData<Food>(entity);
             old.Amount = int.Parse(value);
+            old.MaxAmount = int.Parse(value);
             manager.SetComponentData(entity, old);
         }
     }

@@ -10,15 +10,12 @@ public partial struct AntSpawnerSystem : ISystem
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<AntSpawner>();
-        state.RequireForUpdate<RunningSimulation>();
+        state.RequireForUpdate<StartSimulation>();
     }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        // Only spawn ants once
-        state.Enabled = false;
-
         AntSpawner spawner = SystemAPI.GetSingleton<AntSpawner>();
         EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
 
@@ -49,5 +46,7 @@ public partial struct AntSpawnerSystem : ISystem
             ant.ValueRW.Velocity = ant.ValueRO.DesiredDirection;
         }
 
+        // Remove component so system only updates once
+        state.EntityManager.RemoveComponent<StartSimulation>(SystemAPI.GetSingletonEntity<StartSimulation>());
     }
 }

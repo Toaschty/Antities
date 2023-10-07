@@ -25,6 +25,10 @@ public struct AntSpawner : IComponentData
     public Entity ant;
 }
 
+public struct StartSimulation : IComponentData
+{ 
+}
+
 public struct RunningSimulation : IComponentData
 {
 }

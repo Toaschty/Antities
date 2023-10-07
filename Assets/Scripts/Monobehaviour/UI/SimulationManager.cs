@@ -39,6 +39,7 @@ public class SimulationManager : MonoBehaviour
         if (!query.HasSingleton<RunningSimulation>())
         {
             manager.AddComponent<RunningSimulation>(simulation);
+            manager.AddComponent<StartSimulation>(simulation);
 
             // Enable "Reset Simulation" Button
             ResetSimulationButton.SetActive(true);

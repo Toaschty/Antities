@@ -9,7 +9,6 @@ public class AntAuthoring : MonoBehaviour
     [Header("Movement Settings")]
     public float MaxSpeed = 2f;
     public float SteerStrength = 2f;
-    public float WanderStrength = 1f;
     public float SensorStrength = 0.9f;
     public float RandomDirectionAngle = 90f;
     public float MaxSlopeAngle = 65f;
@@ -25,7 +24,6 @@ public class AntAuthoring : MonoBehaviour
     [Header("Detection Settings")]
     public float ViewAngle = 90f;
     public float ViewRadius = 4f;
-    public float PickUpRadius = 0.5f;
 
     [Header("Sensors")]
     public GameObject LeftSensor;
@@ -42,7 +40,6 @@ public class AntAuthoring : MonoBehaviour
                 State = AntState.SearchingFood,
                 MaxSpeed = authoring.MaxSpeed,
                 SteerStrength = authoring.SteerStrength,
-                WanderStrength = authoring.WanderStrength,
                 SensorStength = authoring.SensorStrength,
                 RandomDirectionAngle = authoring.RandomDirectionAngle,
                 RandomSteerForce = float3.zero,
@@ -96,7 +93,6 @@ public struct Ant : IComponentData
     // Movement
     public float MaxSpeed;
     public float SteerStrength;
-    public float WanderStrength;
     public float SensorStength;
     public float RandomDirectionAngle;
     public float MaxRandomSteerDuration;

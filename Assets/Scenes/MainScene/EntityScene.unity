@@ -382,7 +382,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   DistanceBetweenPheromones: 0.2
-  PheromoneMaxTime: 30
+  PheromoneMaxTime: 2
   MaxPathLength: 200
   PendingPheromone: {fileID: 4450744419724839566, guid: c35086f34f935164e8201ba616f0e794,
     type: 3}

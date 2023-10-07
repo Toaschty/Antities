@@ -1312,9 +1312,9 @@ RectTransform:
   - {fileID: 485909913}
   m_Father: {fileID: 1359998376}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 212.2, y: -126}
   m_SizeDelta: {x: 394.4, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &78632927
@@ -1376,9 +1376,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 78632926}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 80, y: -15}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &88848650
@@ -3085,9 +3085,9 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: TerrainSettings, Assembly-CSharp
-        m_MethodName: SetNoiseScale
+      - m_Target: {fileID: 842387252}
+        m_TargetAssemblyTypeName: AntSettings, Assembly-CSharp
+        m_MethodName: SetRandomSteerDuration
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -4235,9 +4235,9 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: TerrainSettings, Assembly-CSharp
-        m_MethodName: SetNoiseScale
+      - m_Target: {fileID: 842387252}
+        m_TargetAssemblyTypeName: AntSettings, Assembly-CSharp
+        m_MethodName: SetSensorStrength
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -6439,9 +6439,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1359998376}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 15, y: -55}
   m_SizeDelta: {x: 394.4, y: 6}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &453717118
@@ -6736,9 +6736,9 @@ RectTransform:
   - {fileID: 1404950092}
   m_Father: {fileID: 78632926}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 279.7, y: -15}
   m_SizeDelta: {x: 225, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &485909914
@@ -8059,9 +8059,9 @@ RectTransform:
   - {fileID: 497208337}
   m_Father: {fileID: 715550863}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 279.7, y: -15}
   m_SizeDelta: {x: 225, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &560307829
@@ -8995,9 +8995,9 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 2136593022}
-        m_TargetAssemblyTypeName: TerrainSettings, Assembly-CSharp
-        m_MethodName: SetThreshold
+      - m_Target: {fileID: 842387252}
+        m_TargetAssemblyTypeName: AntSettings, Assembly-CSharp
+        m_MethodName: SetRandomRange
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -11010,9 +11010,9 @@ RectTransform:
   - {fileID: 560307828}
   m_Father: {fileID: 1359998376}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 212.2, y: -166}
   m_SizeDelta: {x: 394.4, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &715550864
@@ -12520,6 +12520,7 @@ GameObject:
   - component: {fileID: 842387250}
   - component: {fileID: 842387249}
   - component: {fileID: 842387248}
+  - component: {fileID: 842387252}
   m_Layer: 5
   m_Name: Ant Settings
   m_TagString: Untagged
@@ -12641,6 +12642,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 842387245}
   m_CullTransparentMesh: 1
+--- !u!114 &842387252
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 842387245}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a120a340654b43849b5ebacac9e3608e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &872809824
 GameObject:
   m_ObjectHideFlags: 0
@@ -13349,9 +13362,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 715550863}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 80, y: -15}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &906415733
@@ -14554,9 +14567,9 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: TerrainSettings, Assembly-CSharp
-        m_MethodName: SetNoiseScale
+      - m_Target: {fileID: 842387252}
+        m_TargetAssemblyTypeName: AntSettings, Assembly-CSharp
+        m_MethodName: SetSteerStrength
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -14655,9 +14668,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1370071277}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 80, y: -15}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1008590088
@@ -15132,7 +15145,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MenuID: 3
-  Menu: {fileID: 1151636820}
+  Menu: {fileID: 842387245}
 --- !u!114 &1051625968
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18171,7 +18184,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1359998376
 RectTransform:
   m_ObjectHideFlags: 0
@@ -18194,7 +18207,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 320, y: -463.3}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 424.4, y: 196}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1359998378
 MonoBehaviour:
@@ -18701,9 +18714,9 @@ RectTransform:
   - {fileID: 1435444758}
   m_Father: {fileID: 1359998376}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 212.2, y: -86}
   m_SizeDelta: {x: 394.4, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1370071278
@@ -19858,9 +19871,9 @@ RectTransform:
   - {fileID: 435853122}
   m_Father: {fileID: 1370071277}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 279.7, y: -15}
   m_SizeDelta: {x: 225, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1435444759
@@ -21823,9 +21836,9 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: TerrainSettings, Assembly-CSharp
-        m_MethodName: SetNoiseScale
+      - m_Target: {fileID: 842387252}
+        m_TargetAssemblyTypeName: AntSettings, Assembly-CSharp
+        m_MethodName: SetViewDistance
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -23512,9 +23525,9 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: TerrainSettings, Assembly-CSharp
-        m_MethodName: SetNoiseScale
+      - m_Target: {fileID: 842387252}
+        m_TargetAssemblyTypeName: AntSettings, Assembly-CSharp
+        m_MethodName: SetSlopeAngle
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -24242,9 +24255,9 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 2136593022}
-        m_TargetAssemblyTypeName: TerrainSettings, Assembly-CSharp
-        m_MethodName: SetThreshold
+      - m_Target: {fileID: 842387252}
+        m_TargetAssemblyTypeName: AntSettings, Assembly-CSharp
+        m_MethodName: SetViewAngle
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -24760,9 +24773,9 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: TerrainSettings, Assembly-CSharp
-        m_MethodName: SetNoiseScale
+      - m_Target: {fileID: 842387252}
+        m_TargetAssemblyTypeName: AntSettings, Assembly-CSharp
+        m_MethodName: SetMaxSpeed
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -26409,9 +26422,9 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: TerrainSettings, Assembly-CSharp
-        m_MethodName: SetNoiseScale
+      - m_Target: {fileID: 842387252}
+        m_TargetAssemblyTypeName: AntSettings, Assembly-CSharp
+        m_MethodName: SetRandomSteerStrength
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -26669,9 +26682,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1359998376}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 212.2, y: -30}
   m_SizeDelta: {x: 394.4, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1880592409

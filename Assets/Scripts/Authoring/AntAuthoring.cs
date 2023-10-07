@@ -1,30 +1,9 @@
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Physics;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class AntAuthoring : MonoBehaviour
 {
-    [Header("Movement Settings")]
-    public float MaxSpeed = 2f;
-    public float SteerStrength = 2f;
-    public float SensorStrength = 0.9f;
-    public float RandomDirectionAngle = 90f;
-    public float MaxSlopeAngle = 65f;
-
-    [Header("Random Movement Settings")]
-    public float MaxRandomSteerDuration = 1f;
-    public float RandomSteerStrength = 0.8f;
-
-    [Header("Turn Around Settings")]
-    [Range(0f, 1f)]
-    public float TurnAroundStrength = 1f;
-
-    [Header("Detection Settings")]
-    public float ViewAngle = 90f;
-    public float ViewRadius = 4f;
-
     [Header("Sensors")]
     public GameObject LeftSensor;
     public GameObject CenterSensor;
@@ -38,24 +17,13 @@ public class AntAuthoring : MonoBehaviour
             AddComponent(entity, new Ant
             {
                 State = AntState.SearchingFood,
-                MaxSpeed = authoring.MaxSpeed,
-                SteerStrength = authoring.SteerStrength,
-                SensorStength = authoring.SensorStrength,
-                RandomDirectionAngle = authoring.RandomDirectionAngle,
                 RandomSteerForce = float3.zero,
-                RandomSteerStength = authoring.RandomSteerStrength,
                 IsGrounded = false,
                 HighestQualityFound = 0f,
-                MaxSlopeAngle = authoring.MaxSlopeAngle,
                 GroundNormal = new float3(0.0f, 1.0f, 0.0f),
-                MaxRandomSteerDuration = authoring.MaxRandomSteerDuration,
                 NextRandomSteerTime = Time.time,
                 LastPheromonePosition = float3.zero,
-                TurnAroundStrength = authoring.TurnAroundStrength,
-                TurnAroundDirection = float3.zero,
                 Velocity = float3.zero,
-                ViewAngle = authoring.ViewAngle * Mathf.Deg2Rad,
-                ViewRadius = authoring.ViewRadius,
                 Target = Entity.Null,
                 Food = Entity.Null,
                 LeftSensor = GetEntity(authoring.LeftSensor, TransformUsageFlags.None),
@@ -78,7 +46,6 @@ public class AntAuthoring : MonoBehaviour
 public enum AntState
 {
     SearchingFood,
-    TurningAround,
     GoingHome
 }
 
@@ -91,15 +58,8 @@ public struct Ant : IComponentData
     public float3 ColonyPosition;
 
     // Movement
-    public float MaxSpeed;
-    public float SteerStrength;
-    public float SensorStength;
-    public float RandomDirectionAngle;
-    public float MaxRandomSteerDuration;
-    public float RandomSteerStength;
     public float NextRandomSteerTime;
     public float3 RandomSteerForce;
-    public float MaxSlopeAngle;
 
     public bool IsGrounded;
     public float3 GroundNormal;
@@ -108,16 +68,8 @@ public struct Ant : IComponentData
     public float3 LastPheromonePosition;
     public float HighestQualityFound;
 
-    // Turn around
-    public float TurnAroundStrength;
-    public float3 TurnAroundDirection;
-
     public float3 Velocity;
     public float3 DesiredDirection;
-
-    // Detection
-    public float ViewAngle;
-    public float ViewRadius;
 
     // Sensors
     public Entity LeftSensor;

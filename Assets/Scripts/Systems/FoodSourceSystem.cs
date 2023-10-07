@@ -23,26 +23,26 @@ public partial struct FoodSourceSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        var ECB = new EntityCommandBuffer(Allocator.TempJob);
-        var CollisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
-        var PheromoneConfig = SystemAPI.GetSingleton<PheromoneConfig>();
+        EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.TempJob);
+        CollisionWorld collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
+        PheromoneConfig pheromoneConfig = SystemAPI.GetSingleton<PheromoneConfig>();
 
         AntLookup.Update(ref state);
 
-        var sourceJob = new SourceJob
+        SourceJob sourceJob = new SourceJob
         {
             AntLookup = AntLookup,
-            CollisionWorld = CollisionWorld,
-            ECB = ECB.AsParallelWriter(),
+            CollisionWorld = collisionWorld,
+            ECB = ecb.AsParallelWriter(),
             Time = SystemAPI.Time.ElapsedTime,
-            PheromoneConfig = PheromoneConfig,
+            PheromoneConfig = pheromoneConfig,
         };
 
         JobHandle sourceHandle = sourceJob.ScheduleParallel(state.Dependency);
         sourceHandle.Complete();
 
-        ECB.Playback(state.EntityManager);
-        ECB.Dispose();
+        ecb.Playback(state.EntityManager);
+        ecb.Dispose();
 
         state.Dependency = sourceHandle;
     }

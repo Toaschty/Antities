@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -19,11 +18,13 @@ public partial struct CollisionSystem : ISystem
     {
         CollisionWorld collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
         Terrain terrain = SystemAPI.GetSingleton<Terrain>();
+        AntConfig antConfig = SystemAPI.GetSingleton<AntConfig>();
 
-        var collisionJob = new CollisionJob
+        CollisionJob collisionJob = new CollisionJob
         {
             CollisionWorld = collisionWorld,
             Terrain = terrain,
+            AntConfig = antConfig
         };
 
         var handle = collisionJob.ScheduleParallel(state.Dependency);
@@ -38,6 +39,7 @@ public partial struct CollisionJob : IJobEntity
 {
     [ReadOnly] public CollisionWorld CollisionWorld;
     [ReadOnly] public Terrain Terrain;
+    [ReadOnly] public AntConfig AntConfig;
 
     [BurstCompile]
     public void Execute(ref LocalTransform transform, ref Ant ant)
@@ -65,7 +67,7 @@ public partial struct CollisionJob : IJobEntity
         float slopeAngle = math.degrees(math.acos(math.dot(new float3(0.0f, 1.0f, 0.0f), groundHit.SurfaceNormal)));
 
         // Flip velocity
-        if (slopeAngle > ant.MaxSlopeAngle && ant.Velocity.y > 0)
+        if (slopeAngle > AntConfig.MaxSlopeAngle && ant.Velocity.y > 0)
         {
             ant.DesiredDirection = -ant.Velocity;
             ant.RandomSteerForce = -ant.Velocity;
@@ -104,7 +106,7 @@ public partial struct CollisionJob : IJobEntity
         {
             float wallAngle = math.degrees(math.acos(math.dot(new float3(0.0f, 1.0f, 0.0f), wallHit.SurfaceNormal)));
 
-            if (wallAngle < ant.MaxSlopeAngle)
+            if (wallAngle < AntConfig.MaxSlopeAngle)
                 return;
 
             float3 newDirection = math.reflect(ant.Velocity, wallHit.SurfaceNormal);

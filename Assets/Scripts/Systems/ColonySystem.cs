@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -23,23 +22,23 @@ public partial struct ColonySystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        var ECB = new EntityCommandBuffer(Allocator.TempJob);
-        var CollisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
+        EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.TempJob);
+        CollisionWorld collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
         antLookup.Update(ref state);
 
-        var depositJob = new DepositJob
+        DepositJob depositJob = new DepositJob
         {
-            CollisionWorld = CollisionWorld,
+            CollisionWorld = collisionWorld,
             Time = SystemAPI.Time.ElapsedTime,
             AntLookup = antLookup,
-            ECB = ECB.AsParallelWriter(),
+            ECB = ecb.AsParallelWriter(),
         };
 
         JobHandle depositHandle = depositJob.ScheduleParallel(state.Dependency);
         depositHandle.Complete();
 
-        ECB.Playback(state.EntityManager);
-        ECB.Dispose();
+        ecb.Playback(state.EntityManager);
+        ecb.Dispose();
 
         state.Dependency = depositHandle;
     }

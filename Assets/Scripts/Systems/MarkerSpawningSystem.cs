@@ -1,15 +1,9 @@
-using JetBrains.Annotations;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
-using Unity.Physics;
 using Unity.Transforms;
-using UnityEngine;
 
 [UpdateBefore(typeof(MarkerDecaySystem))]
 public partial struct MarkerSpawningSystem : ISystem
@@ -24,20 +18,20 @@ public partial struct MarkerSpawningSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        PheromoneConfig PheromoneConfig = SystemAPI.GetSingleton<PheromoneConfig>();
-        EntityCommandBuffer ECB = new EntityCommandBuffer(Allocator.TempJob);
+        PheromoneConfig pheromoneConfig = SystemAPI.GetSingleton<PheromoneConfig>();
+        EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.TempJob);
 
-        var spawningJob = new SpawningJob
+        SpawningJob spawningJob = new SpawningJob
         {
-            PheromoneConfig = PheromoneConfig,
-            ECB = ECB.AsParallelWriter(),
+            PheromoneConfig = pheromoneConfig,
+            ECB = ecb.AsParallelWriter(),
         };
 
         JobHandle spawningHandle = spawningJob.ScheduleParallel(state.Dependency);
         spawningHandle.Complete();
 
-        ECB.Playback(state.EntityManager);
-        ECB.Dispose();
+        ecb.Playback(state.EntityManager);
+        ecb.Dispose();
 
         state.Dependency = spawningHandle;
     }

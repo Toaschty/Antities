@@ -1,5 +1,4 @@
 using Unity.Burst;
-using Unity.Burst.CompilerServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
@@ -22,34 +21,34 @@ public partial struct PathBuildingSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        var ECB = new EntityCommandBuffer(Allocator.TempJob);
-        var PheromoneConfig = SystemAPI.GetSingletonRW<PheromoneConfig>();
+        EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.TempJob);
+        RefRW<PheromoneConfig> PheromoneConfig = SystemAPI.GetSingletonRW<PheromoneConfig>();
 
         WaypointLookup.Update(ref state);
 
-        var pathValidationJob = new PathValidationJob
+        PathValidationJob pathValidationJob = new PathValidationJob
         {
             PheromoneConfig = PheromoneConfig.ValueRO,
             WaypointLookup = WaypointLookup,
-            ECB = ECB.AsParallelWriter(),
+            ECB = ecb.AsParallelWriter(),
         };
 
         JobHandle pathValidationHandle = pathValidationJob.ScheduleParallel(state.Dependency);
         pathValidationHandle.Complete();
 
-        var pathJob = new PathBuildingJob
+        PathBuildingJob pathJob = new PathBuildingJob
         {
             PheromoneConfig = PheromoneConfig,
             Time = SystemAPI.Time.ElapsedTime,
             WaypointLookup = WaypointLookup,
-            ECB = ECB.AsParallelWriter(),
+            ECB = ecb.AsParallelWriter(),
         };
 
         JobHandle pathHandle = pathJob.ScheduleParallel(pathValidationHandle);
         pathHandle.Complete();
 
-        ECB.Playback(state.EntityManager);
-        ECB.Dispose();
+        ecb.Playback(state.EntityManager);
+        ecb.Dispose();
 
         state.Dependency = pathHandle;
     }

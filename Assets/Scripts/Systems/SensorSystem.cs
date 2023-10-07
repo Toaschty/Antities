@@ -29,7 +29,7 @@ public partial struct SensorSystem : ISystem
         AntLookup.Update(ref state);
         PheromoneLookup.Update(ref state);
 
-        var sensorJob = new PhysicsSensorJob
+        PhysicsSensorJob sensorJob = new PhysicsSensorJob
         {
             AntsLookup = AntLookup,
             PheromoneLookup = PheromoneLookup,

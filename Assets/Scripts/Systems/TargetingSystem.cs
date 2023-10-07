@@ -21,14 +21,16 @@ public partial struct TargetingSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        var CollisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
+        CollisionWorld CollisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
+        AntConfig antConfig = SystemAPI.GetSingleton<AntConfig>();
 
         FoodLookup.Update(ref state);
 
-        var targetingJob = new TargetingJob
+        TargetingJob targetingJob = new TargetingJob
         {
             FoodLookup = FoodLookup,
             CollisionWorld = CollisionWorld,
+            AntConfig = antConfig
         };
 
         JobHandle targetingHandle = targetingJob.ScheduleParallel(state.Dependency);
@@ -45,7 +47,8 @@ public partial struct TargetingJob : IJobEntity
 {
     [ReadOnly] public ComponentLookup<Food> FoodLookup;
     [ReadOnly] public CollisionWorld CollisionWorld;
-
+    [ReadOnly] public AntConfig AntConfig;
+    
     [BurstCompile]
     public void Execute(in LocalTransform transform, ref Ant ant, EnabledRefRO<TargetingFood> tf)
     {
@@ -63,7 +66,7 @@ public partial struct TargetingJob : IJobEntity
         PointDistanceInput pointDistanceInput = new PointDistanceInput
         {
             Position = transform.Position,
-            MaxDistance = ant.ViewRadius,
+            MaxDistance = AntConfig.ViewDistance,
             Filter = new CollisionFilter
             {
                 BelongsTo = 512u, // Ant
@@ -87,7 +90,7 @@ public partial struct TargetingJob : IJobEntity
             var dot = math.dot(transform.Forward(), toTarget);
             var angle = math.acos(dot / (math.length(transform.Forward()) * math.length(toTarget)));
 
-            if (angle > ant.ViewAngle / 2.0f)
+            if (angle > AntConfig.ViewAngle / 2.0f)
                 continue;
 
             // Check if object is blocked by wall

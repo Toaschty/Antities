@@ -1,11 +1,8 @@
-using System.Text;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
-using Unity.Mathematics;
 using Unity.Transforms;
-using Unity.VisualScripting;
 
 public partial struct MarkerDecaySystem : ISystem
 {

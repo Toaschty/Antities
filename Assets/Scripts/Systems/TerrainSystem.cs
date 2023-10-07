@@ -443,14 +443,12 @@ public partial struct NoiseJob : IJobParallelFor
         float y = (index / ((TerrainSettings.Width + 1) * (TerrainSettings.Depth + 1))) % (TerrainSettings.Height + 1);
         float z = (index / (TerrainSettings.Width + 1)) % (TerrainSettings.Depth + 1);
 
-        // TODO - And randomness
-
         // Apply noise scale
         float sampleX = x / TerrainSettings.Width * TerrainSettings.NoiseScale;
         float sampleY = y / TerrainSettings.Width * TerrainSettings.NoiseScale;
         float sampleZ = z / TerrainSettings.Width * TerrainSettings.NoiseScale;
 
-        TerrainData[index] = Perlin3D(sampleX, sampleY, sampleZ);
+        TerrainData[index] = Perlin3D(sampleX + TerrainSettings.Seed.x, sampleY + TerrainSettings.Seed.y, sampleZ + TerrainSettings.Seed.z);
 
         if (y > TerrainSettings.NoiseDropOffHeight)
             TerrainData[index] *= 1 - math.pow(((y - TerrainSettings.NoiseDropOffHeight) / (TerrainSettings.Height - TerrainSettings.NoiseDropOffHeight)), 3);

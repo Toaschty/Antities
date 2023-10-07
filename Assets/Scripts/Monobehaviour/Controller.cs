@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Physics;
 using Unity.Rendering;
 using UnityEngine;
 
@@ -86,5 +87,48 @@ public class Controller : MonoBehaviour
         Quaternion rotationQuaternion = Quaternion.Euler(rotation);
         Camera.transform.position = rotationQuaternion * new Vector3(0, 0, -cameraZoom) + transform.position;
         Camera.transform.rotation = rotationQuaternion;
+    }
+
+    public void MoveToTerrainCenter(Terrain terrain)
+    {
+        StartCoroutine(DelayedMove(terrain));
+    }
+
+    private IEnumerator DelayedMove(Terrain terrain)
+    {
+        yield return new WaitForSeconds(0.4f);
+        Move(terrain);
+    }
+
+    private void Move(Terrain terrain)
+    {
+        EntityQueryBuilder builder = new EntityQueryBuilder(Allocator.Temp).WithAll<PhysicsWorldSingleton>();
+        EntityQuery singeltonQuery = World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(builder);
+        CollisionWorld collisionWorld = singeltonQuery.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
+
+        // Get top center of terrain
+        float3 terrainCenter = new float3(terrain.Width / 2.0f, terrain.Height, terrain.Depth / 2.0f);
+
+        // Shoot raycast from top to get new camera pivot point
+        RaycastInput input = new RaycastInput
+        {
+            Start = terrainCenter,
+            End = new float3(terrainCenter.x, 0.0f, terrainCenter.z),
+            Filter = new CollisionFilter
+            {
+                BelongsTo = ~0u,
+                CollidesWith = 128u,
+                GroupIndex = 0
+            }
+        };
+
+        Unity.Physics.RaycastHit hit;
+        if (collisionWorld.CastRay(input, out hit))
+            transform.position = hit.Position;
+        else
+            transform.position = terrainCenter;
+
+        builder.Dispose();
+        singeltonQuery.Dispose();
     }
 }

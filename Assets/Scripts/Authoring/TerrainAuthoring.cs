@@ -41,6 +41,7 @@ public class TerrainAuthoring : MonoBehaviour
                 Width = authoring.Width,
                 Height = authoring.Height,
                 Depth = authoring.Depth,
+                Seed = new float3(913.986f, 4167.889f, 330.2849f),
                 ChunkWidth = authoring.ChunkWidth,
                 ChunkHeight = authoring.ChunkHeight,
                 ChunkDepth = authoring.ChunkDepth,
@@ -73,6 +74,7 @@ public struct Terrain : IComponentData
     public int ChunkDepth;
 
     // Noise Settings
+    public float3 Seed;
     public float NoiseScale;
     public float Threshold;
     public int NoiseDropOffHeight;

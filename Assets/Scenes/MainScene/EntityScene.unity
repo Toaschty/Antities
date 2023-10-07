@@ -354,9 +354,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d43f26fe900a1349b283830d6d6f960, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Width: 256
+  Width: 32
   Height: 64
-  Depth: 256
+  Depth: 32
   ChunkWidth: 8
   ChunkHeight: 64
   ChunkDepth: 8

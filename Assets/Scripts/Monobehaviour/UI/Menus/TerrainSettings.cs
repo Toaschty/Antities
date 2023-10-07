@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class TerrainSettings : MonoBehaviour, IMenu
@@ -33,6 +35,15 @@ public class TerrainSettings : MonoBehaviour, IMenu
     public void SetTerrainDepth(string value)
     {
         query.GetSingletonRW<Terrain>().ValueRW.Depth = int.Parse(value);
+    }
+
+    public void SetTerrainSeed(string value)
+    {
+        UnityEngine.Random.InitState(int.Parse(value));
+
+        float3 random = new float3(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+
+        query.GetSingletonRW<Terrain>().ValueRW.Seed = random * 5000f;
     }
 
     public void SetChunkWidth(string value)
@@ -75,6 +86,7 @@ public class TerrainSettings : MonoBehaviour, IMenu
         manager.AddComponent<GenerateTerrain>(generateTerrain);
         GameObject.FindGameObjectWithTag("MenuManager").GetComponent<MenuManager>().ToggleMenu(0);
         GameObject.FindGameObjectWithTag("InfoDisplay").GetComponent<TMPro.TMP_Text>().text = "";
+        GameObject.FindGameObjectWithTag("Controller").GetComponent<Controller>().MoveToTerrainCenter(query.GetSingleton<Terrain>());
     }
 
     public void OpenMenu()

@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class SliderUpdater : MonoBehaviour
 {
     public TMPro.TMP_Text SliderText;
+    public bool Integer;
 
     private Slider slider;
 
@@ -16,6 +17,9 @@ public class SliderUpdater : MonoBehaviour
 
     public void UpdateText()
     {
-        SliderText.text = slider.value.ToString("F3");
+        if (Integer)
+            SliderText.text = slider.value.ToString();
+        else
+            SliderText.text = slider.value.ToString("F3");
     }
 }

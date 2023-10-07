@@ -40,4 +40,9 @@ public struct PheromoneConfig : IComponentData
     public Entity PathPheromone;
 
     public float Scale;
+
+    public static EntityQuery GetQuery()
+    {
+        return World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(new ComponentType[] { typeof(PheromoneConfig) });
+    }
 }

@@ -7,6 +7,7 @@ public class SliderUpdater : MonoBehaviour
 {
     public TMPro.TMP_Text SliderText;
     public bool Integer;
+    public bool Percent;
 
     private Slider slider;
 
@@ -21,5 +22,8 @@ public class SliderUpdater : MonoBehaviour
             SliderText.text = slider.value.ToString();
         else
             SliderText.text = slider.value.ToString("F3");
+
+        if (Percent)
+            SliderText.text += " %";
     }
 }

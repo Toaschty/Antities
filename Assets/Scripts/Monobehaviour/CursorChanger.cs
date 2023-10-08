@@ -26,9 +26,9 @@ public class CursorChanger : MonoBehaviour
 
     private void Update()
     {
-        CameraData cameraData = query.GetSingleton<CameraData>();
+        CameraData cameraData;
 
-        if (cameraData.Intersect && !cameraData.OnUI)
+        if (query.TryGetSingleton(out cameraData) && cameraData.Intersect && !cameraData.OnUI)
         {
             // Check if current object is a terrain object
             if (manager.HasComponent<PlacedTerrainObject>(cameraData.Entity))

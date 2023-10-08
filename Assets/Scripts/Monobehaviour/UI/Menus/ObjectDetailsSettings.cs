@@ -53,8 +53,16 @@ public class ObjectDetailsSettings : MonoBehaviour
         // Move window to correct position
         if (Details.activeSelf)
         {
-            // Check if different object was selected => Change to new one
-            if (objectPosition != (Vector3)query.GetSingleton<LocalTransform>().Position)
+            // Check if current object is still there => Close Menu if not
+            LocalTransform transform;
+            if (!query.TryGetSingleton(out transform))
+            {
+                CloseDetailMenu();
+                return;
+            }
+
+            // Get Object data if other object was selected
+            if (objectPosition != (Vector3)transform.Position)
                 GetObjectData();
 
             // Get screen point
@@ -62,6 +70,10 @@ public class ObjectDetailsSettings : MonoBehaviour
 
             if (screenPoint.z > 0)
                 Details.transform.position = screenPoint;
+
+            // Update value
+            if (Detail.IsActive())
+                GetObjectDetailInfo();
         }
     }
 
@@ -84,6 +96,11 @@ public class ObjectDetailsSettings : MonoBehaviour
             Detail.transform.parent.gameObject.SetActive(true);
 
         // Get value inside colony or food
+        GetObjectDetailInfo();
+    }
+
+    private void GetObjectDetailInfo()
+    {
         if (manager.HasComponent<Colony>(entity))
             InputField.text = manager.GetComponentData<Colony>(entity).AntAmount.ToString();
         if (manager.HasComponent<Food>(entity))
@@ -119,7 +136,11 @@ public class ObjectDetailsSettings : MonoBehaviour
     public void CloseDetailMenu()
     {
         manager.RemoveComponent<SelectedObject>(entity);
-        cameraQuery.GetSingletonRW<CameraData>().ValueRW.OnUI = false;
+
+        RefRW<CameraData> cameraData;
+        if (cameraQuery.TryGetSingletonRW(out cameraData))
+            cameraData.ValueRW.OnUI = false;
+
         Details.SetActive(false);
         entity = Entity.Null;
     }
@@ -127,7 +148,11 @@ public class ObjectDetailsSettings : MonoBehaviour
     public void DeleteObject()
     {
         manager.DestroyEntity(entity);
-        cameraQuery.GetSingletonRW<CameraData>().ValueRW.OnUI = false;
+
+        RefRW<CameraData> cameraData;
+        if (cameraQuery.TryGetSingletonRW(out cameraData))
+            cameraData.ValueRW.OnUI = false;
+
         Details.SetActive(false);
         entity = Entity.Null;
     }

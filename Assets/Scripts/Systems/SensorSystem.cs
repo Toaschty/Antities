@@ -75,7 +75,7 @@ public partial struct PhysicsSensorJob : IJobEntity
         // Find highest quality path
         foreach (var hit in hits)
         {
-            if (PheromoneLookup.GetRefRO(hit.Entity).ValueRO.Quality > maxQuality)
+            if (PheromoneLookup.HasComponent(hit.Entity) && PheromoneLookup.GetRefRO(hit.Entity).ValueRO.Quality > maxQuality)
                 maxQuality = PheromoneLookup.GetRefRO(hit.Entity).ValueRO.Quality;
         }
 

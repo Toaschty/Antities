@@ -18,7 +18,7 @@ public partial struct CameraSystem : ISystem
         CollisionWorld CollisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().CollisionWorld;
 
         GetCameraRay(data);
-        CalculateIntersections(data, CollisionWorld);
+        CalculateIntersections(ref state, data, CollisionWorld);
     }
 
     public void GetCameraRay(RefRW<CameraData> data)
@@ -32,7 +32,7 @@ public partial struct CameraSystem : ISystem
     }
 
     [BurstCompile]
-    public void CalculateIntersections(RefRW<CameraData> data, CollisionWorld CollisionWorld)
+    public void CalculateIntersections(ref SystemState state, RefRW<CameraData> data, CollisionWorld CollisionWorld)
     {
         // Handle mouse input
         RaycastInput terrainRayCast = new RaycastInput
@@ -81,12 +81,18 @@ public partial struct CameraSystem : ISystem
             data.ValueRW.Intersection = generalHit.Position;
             data.ValueRW.Intersect = true;
             data.ValueRW.Entity = generalHit.Entity;
+
+            if (state.EntityManager.HasComponent<PlacedTerrainObject>(data.ValueRO.Entity))
+                data.ValueRW.OnObject = true;
+            else
+                data.ValueRW.OnObject = false;
         }
         else
         {
             data.ValueRW.Intersection = float3.zero;
             data.ValueRW.Intersect = false;
             data.ValueRW.Entity = Entity.Null;
+            data.ValueRW.OnObject = false;
         }
     }
 }

@@ -21,17 +21,27 @@ public class PathSettings : MonoBehaviour, IMenu
 
     public void SetDistance(string value)
     {
+        if (!CheckInput(value)) return;
         query.GetSingletonRW<PheromoneConfig>().ValueRW.DistanceBetweenPheromones = float.Parse(value);
     }
 
     public void SetPathTime(string value)
     {
+        if (!CheckInput(value)) return;
         query.GetSingletonRW<PheromoneConfig>().ValueRW.PheromoneMaxTime = double.Parse(value);
     }
 
     public void SetPathLength(string value)
     {
+        if (!CheckInput(value)) return;
         query.GetSingletonRW<PheromoneConfig>().ValueRW.MaxPathLength = int.Parse(value);
+    }
+
+    public bool CheckInput(string value)
+    {
+        if (value == "")
+            return false;
+        return true;
     }
 
     public void OpenMenu()

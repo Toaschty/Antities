@@ -13,7 +13,7 @@ public class ColonyAuthoring : MonoBehaviour
             AddComponent(entity, new Colony
             {
                 DepositRadius = authoring.DepositRadius,
-                AntAmount = 0,
+                AntAmount = 1,
             });
         }
     }

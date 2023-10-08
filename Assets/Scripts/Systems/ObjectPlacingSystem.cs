@@ -59,7 +59,7 @@ public partial struct ObjectPlacingSystem : ISystem
         SystemAPI.SetSingleton(objPlacing);
 
         // Handle object placing
-        if (cameraData.TerrainIntersect && !cameraData.OnUI && Input.GetMouseButtonDown(0))
+        if (cameraData.TerrainIntersect && !cameraData.OnUI && !cameraData.OnObject && Input.GetMouseButtonDown(0))
         {
             Entity objectToSpawn = Entity.Null;
 

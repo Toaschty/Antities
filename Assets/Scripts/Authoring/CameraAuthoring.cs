@@ -20,6 +20,7 @@ public struct CameraData : IComponentData
 {
     // UI
     public bool OnUI;
+    public bool OnObject;
 
     // Screen to World Ray
     public float3 Origin;

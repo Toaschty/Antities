@@ -62,7 +62,7 @@ public partial struct DecayJob : IJobEntity
         if (pheromone.LifeTime < Time && pheromone.Quality == 0.0001f)
             pheromone.Quality = 0.0001f;
 
-        if (pheromone.LifeTime + 30 < Time)
+        if (pheromone.LifeTime < Time)
         {
             ECB.DestroyEntity(0, entity);
             return;

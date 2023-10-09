@@ -39,7 +39,8 @@ Da sich Unity DOTS noch stark in der Entwicklung befindet, sollte nach Möglichk
 
 ## Bildergalerie
 
-![Antities_Collage](https://github.com/Toaschty/Antities/assets/43918666/84b25c55-75f8-47d8-83f9-beaf6eb34d91)
+![Antities_Collage-min](https://github.com/Toaschty/Antities/assets/43918666/e8038914-c927-4015-981b-96aa7890df9d)
+
 
 ## Credits
 Musik von Sergii Pavkin auf Pixabay (Danke ^^)

@@ -2,45 +2,41 @@
   <image src="https://github.com/Toaschty/Antities/assets/43918666/7a47e49f-3db1-4a8d-bd28-c285a37bcb72">
 </p>
 
-## Über die Simulation
+## About the Simulation
 
-Antities ist eine Softwareanwendung, die das Verhalten von Ameisen "realitätsnah" simuliert.
+Antities is a software application that simulates the behavior of ants in a 'realistic' way.
 
-Diese Anwendung wurde mit Unity entwickelt und nutzt die Data-Oriented Technology Stack (DOTS) Version 1.0.
-Das Verhalten der Ameisen orientiert sich eng an ihren natürlichen Vorbildern und verwendet so unter anderem Pheromone, um Wege zur Kolonie oder zu Nahrungsquellen zu kennzeichnen.
+Developed with Unity and the Data-Oriented Technology Stack (DOTS) version 1.0, the ants' behavior closely mimics their natural counterparts, including the use of pheromones to mark paths to their colony or food sources.
 
-Um die Software interaktiver zu gestalten, lässt sich das Terrain frei bearbeiten. Durch den Einsatz des Marching Cube Algorithmus können interssante Landschaften gestaltet werden.
-Jegliche Einstellungen bezüglich den Ameisen und derren Wegfindung lassen sich direkt während der Simulation abändern.
+The simulation is fully interactive, allowing users to edit the terrain by utilizing the Marching Cubes algorithm to create unique landscapes. Settings related to ant behavior and pathfinding can be adjusted during the process for a customizable experience.
 
-## Programm ausführen
+## Running the Program
 
-### Ausführbare Datei
+### Executable File
 
-Unter [Releases](https://github.com/Toaschty/Antities/releases) kann der aktuelle Build direkt für Windows heruntergeladen werden.
+The latest build for Windows can be downloaded directly under [Releases](https://github.com/Toaschty/Antities/releases).
 
-### Projekt selbst bauen
+### Building the Project
 
-Alternativ kann der Sourcecode über dieses Repository bezogen werden.
+Alternatively, the source code can be obtained via this repository:
 
 `git clone git@github.com:Toaschty/Antities.git`
 
-oder
+or
 
 `git clone https://github.com/Toaschty/Antities.git`
 
-Um Kompatibilitätsfehler zu vermeiden, wird dringend empfohlen, Unity in der Version **2022.3.7f1** oder einer neueren Version zu verwenden.
-
-Da sich Unity DOTS noch stark in der Entwicklung befindet, sollte nach Möglichkeit **Version 1.0** verwendet werden. Ältere oder Zukünftige Versionen können schwerwiegende Änderungen in der Funktionsweise besitzen.
+To avoid compatibility issues, it is strongly recommended to use Unity version **2022.3.7f1** or newer.
+Since Unity DOTS is still under active development, **version 1.0** should be used whenever possible. Older or future versions may include significant changes to its functionality.
 
 ## Videos
 
 [Walkthrough](https://youtu.be/akErBchOEzc) <br>
 [Example Simulation](https://youtu.be/S8pg2oPdXzE)
 
-## Bildergalerie
+## Image Gallery
 
 ![Antities_Collage-min](https://github.com/Toaschty/Antities/assets/43918666/e8038914-c927-4015-981b-96aa7890df9d)
 
-
 ## Credits
-Musik von Sergii Pavkin auf Pixabay (Danke ^^)
+Music by Sergii Pavkin on Pixabay (Thank you ^^)
